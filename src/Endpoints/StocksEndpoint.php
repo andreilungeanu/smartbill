@@ -3,12 +3,9 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\PendingRequest;
 
-class StocksEndpoint
+class StocksEndpoint extends BaseEndpoint
 {
-    public function __construct(protected PendingRequest $client) {}
-
     public function list(string $cif, string $date, ?string $warehouseName = null, ?string $productName = null, ?string $productCode = null): array
     {
         $data = [

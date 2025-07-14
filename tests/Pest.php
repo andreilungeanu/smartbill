@@ -1,7 +1,6 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Tests\TestCase;
-
 use Illuminate\Http\Client\PendingRequest;
 
 uses(TestCase::class)->in(__DIR__);
