@@ -30,9 +30,10 @@ SMARTBILL_API_TOKEN=your-api-token
 
 ## Usage Examples
 
-You can interact with the API in three ways:
+You can interact with the API in two primary ways:
 
 #### 1. Using the Facade (recommended for Laravel)
+This is the most convenient method for use within a Laravel application.
 ```php
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
 
@@ -40,6 +41,7 @@ $response = Smartbill::invoices()->create($invoiceData);
 ```
 
 #### 2. Using the Service Container
+This is useful for dependency injection within your own classes.
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
 
@@ -47,15 +49,24 @@ $smartbill = app(Smartbill::class);
 $response = $smartbill->invoices()->create($invoiceData);
 ```
 
-#### 3. Direct Instantiation
+Both of these methods work seamlessly because Laravel's service container automatically handles the creation of the required HTTP client and injects it into the package.
+
+#### 3. Manual Instantiation (Advanced)
+Direct instantiation with `new Smartbill()` is no longer possible due to the new dependency injection requirement. If you need to use this package outside of a Laravel application or wish to manually construct the object, you must now provide a configured `Illuminate\Http\Client\PendingRequest` instance to its constructor.
+
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Support\Facades\Http;
 
-$smartbill = new Smartbill();
+// Manually create and configure the HTTP client
+$client = Http::withBasicAuth('your-username', 'your-api-token')
+    ->baseUrl('https://ws.smartbill.ro/SBORO/api')
+    ->acceptJson();
+
+// Pass the configured client to the constructor
+$smartbill = new Smartbill($client);
 $response = $smartbill->invoices()->create($invoiceData);
 ```
-
-All three methods are valid and provide the same functionality. The Facade is the most convenient for typical Laravel usage, while the other two are useful for testing, dependency injection, or use outside Laravel.
 
 ### Example 1: Creating an Invoice
 
