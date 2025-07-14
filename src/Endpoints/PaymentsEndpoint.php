@@ -3,13 +3,15 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\PendingRequest;
 
 class PaymentsEndpoint
 {
+    public function __construct(protected PendingRequest $client) {}
+
     public function create(array $data): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/payment', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
@@ -19,7 +21,7 @@ class PaymentsEndpoint
 
     public function getText(string $cif, string $id): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/payment/text', [
                 'cif' => $cif,
                 'id' => $id,
@@ -32,7 +34,7 @@ class PaymentsEndpoint
 
     public function deleteReceipt(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->delete('/payment/chitanta', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -46,7 +48,7 @@ class PaymentsEndpoint
 
     public function deleteByInvoice(string $cif, string $paymentType, string $invoiceSeries, string $invoiceNumber): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->delete('/payment/v2', [
                 'cif' => $cif,
                 'paymentType' => $paymentType,
@@ -61,7 +63,7 @@ class PaymentsEndpoint
 
     public function deleteByPayment(string $cif, string $paymentType, string $paymentDate, float $paymentValue, string $clientName, string $clientCif): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->delete('/payment/v2', [
                 'cif' => $cif,
                 'paymentType' => $paymentType,

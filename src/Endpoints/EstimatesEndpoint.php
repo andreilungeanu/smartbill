@@ -3,13 +3,15 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\PendingRequest;
 
 class EstimatesEndpoint
 {
+    public function __construct(protected PendingRequest $client) {}
+
     public function create(array $data): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/estimate', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
@@ -19,7 +21,7 @@ class EstimatesEndpoint
 
     public function createV2(array $data): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/estimate/v2', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
@@ -29,7 +31,7 @@ class EstimatesEndpoint
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/estimate/pdf', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -43,7 +45,7 @@ class EstimatesEndpoint
 
     public function getInvoices(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/estimate/invoices', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -57,7 +59,7 @@ class EstimatesEndpoint
 
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->put('/estimate/cancel', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -71,7 +73,7 @@ class EstimatesEndpoint
 
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->put('/estimate/restore', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -85,7 +87,7 @@ class EstimatesEndpoint
 
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->delete('/estimate', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,

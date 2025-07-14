@@ -3,13 +3,15 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\PendingRequest;
 
 class InvoicesEndpoint
 {
+    public function __construct(protected PendingRequest $client) {}
+
     public function create(array $data): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/invoice', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
@@ -19,7 +21,7 @@ class InvoicesEndpoint
 
     public function createV2(array $data): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/invoice/v2', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
@@ -29,7 +31,7 @@ class InvoicesEndpoint
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/invoice/pdf', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -43,7 +45,7 @@ class InvoicesEndpoint
 
     public function getPaymentStatus(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/invoice/paymentstatus', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -57,7 +59,7 @@ class InvoicesEndpoint
 
     public function reverse(string $cif, string $seriesName, string $number, string $issueDate): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->post('/invoice/reverse', [
                 'companyVatCode' => $cif,
                 'seriesName' => $seriesName,
@@ -72,7 +74,7 @@ class InvoicesEndpoint
 
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->put('/invoice/cancel', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -86,7 +88,7 @@ class InvoicesEndpoint
 
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->put('/invoice/restore', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
@@ -100,7 +102,7 @@ class InvoicesEndpoint
 
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        $response = Smartbill::api()
+        $response = $this->client
             ->delete('/invoice', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,

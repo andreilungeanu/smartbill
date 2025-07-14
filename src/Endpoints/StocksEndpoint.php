@@ -3,10 +3,12 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\PendingRequest;
 
 class StocksEndpoint
 {
+    public function __construct(protected PendingRequest $client) {}
+
     public function list(string $cif, string $date, ?string $warehouseName = null, ?string $productName = null, ?string $productCode = null): array
     {
         $data = [
@@ -26,7 +28,7 @@ class StocksEndpoint
             $data['productCode'] = $productCode;
         }
 
-        $response = Smartbill::api()
+        $response = $this->client
             ->get('/stocks', $data)
             ->throw(fn ($response) => throw new SmartbillApiException($response))
             ->json();
