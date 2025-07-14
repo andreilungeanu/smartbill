@@ -157,11 +157,8 @@ This is just a small sample of the available methods. For a complete list of all
 
 When working with the Smartbill API, there are a few known issues to be aware of:
 
-1.  **Non-Compliant Headers on 400 Errors**:
-    A significant issue exists where the Smartbill API returns non-compliant HTTP headers, particularly when a `400 Bad Request` status is returned. This has been most commonly observed on endpoints like `/invoice/pdf` and `/estimates/pdf` when a document is not found. The API returns headers with spaces in their names (e.g., `"Entitate atasata"`), which violates the HTTP/1.1 specification (RFC 7230, section 3.2).
-
-    This non-compliance causes standard HTTP clients like Guzzle (used by Laravel) to throw an `InvalidArgumentException`, as they enforce strict adherence to HTTP standards. To manage this, the package includes a temporary workaround that uses a raw cURL request to bypass Guzzle's validation. While this allows the application to handle the error, please be aware that this behavior may occur in other situations as well.
-
+1.  **Internal Server Errors on Invalid Request Data**:
+    The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.
 2.  **Internal Server Errors on Invalid Request Data**:
     The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.
 

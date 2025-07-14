@@ -27,38 +27,18 @@ class EstimatesEndpoint
         return $response;
     }
 
-    // public function getPdf(string $cif, string $seriesName, string $number)
-    // {
-    //     $response = Smartbill::api()
-    //         ->get('/estimate/pdf', [
-    //             'cif' => $cif,
-    //             'seriesname' => $seriesName,
-    //             'number' => $number,
-    //         ])
-    //         ->throw(fn($response) => throw new SmartbillApiException($response))
-    //         ->body();
-
-    //     return $response;
-    // }
-
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        // Use the raw cURL GET request as a temporary fix to handle the API's
-        // non-compliant "Entitate atasata" header on error responses.
-        $responseArray = Smartbill::api_curl_get('/estimate/pdf', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]);
+        $response = Smartbill::api()
+            ->get('/estimate/pdf', [
+                'cif' => $cif,
+                'seriesname' => $seriesName,
+                'number' => $number,
+            ])
+            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->body();
 
-        if ($responseArray['code'] >= 400) {
-            throw new SmartbillApiException(
-                $responseArray['body'],
-                $responseArray['code']
-            );
-        }
-
-        return $responseArray['body'];
+        return $response;
     }
 
     public function getInvoices(string $cif, string $seriesName, string $number): array
