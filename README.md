@@ -170,8 +170,6 @@ When working with the Smartbill API, there are a few known issues to be aware of
 
 1.  **Internal Server Errors on Invalid Request Data**:
     The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.
-2.  **Internal Server Errors on Invalid Request Data**:
-    The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.
 
     For example, sending `nume` instead of `name` in the client object will trigger a `500` error:
     ```php
