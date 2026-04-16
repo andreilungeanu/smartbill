@@ -3,7 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/andreilungeanu/smartbill.svg?style=flat-square)](https://packagist.org/packages/andreilungeanu/smartbill)
 [![Total Downloads](https://img.shields.io/packagist/dt/andreilungeanu/smartbill.svg?style=flat-square)](https://packagist.org/packages/andreilungeanu/smartbill)
 
-A Laravel package for the Smartbill API, offering full compatibility with Laravel versions 11 and 12.
+A Laravel package for the Smartbill API, offering full compatibility with Laravel versions 11, 12, and 13.
 
 ## Installation
 
@@ -24,7 +24,7 @@ php artisan vendor:publish --provider="AndreiLungeanu\Smartbill\SmartbillService
 This will create a `config/smartbill.php` file in your application's config directory. You should add your Smartbill API credentials to your `.env` file:
 
 ```
-SMARTBILL_USERNAME=your-username
+SMARTBILL_API_USERNAME=your-username
 SMARTBILL_API_TOKEN=your-api-token
 ```
 

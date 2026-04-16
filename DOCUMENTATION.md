@@ -881,7 +881,7 @@ Cand **usePaymentTax** are valoarea **true** si:
 ---
 
 ### Emitere factura si trimiterea ei pe email clientului ca atasament + link catre factura
-**Method:** `Smartbill::invoices()->send(array $data)`
+**Method:** `Smartbill::invoices()->create(array $data)`
 
 **Description:**
 
@@ -2026,7 +2026,7 @@ In cazul aplicarii unui discount pe un produs se urmaresc pasii urmatori:
 ---
 
 ### Emitere proforma si trimiterea ei pe email clientului ca atasament + link catre proforma
-**Method:** `Smartbill::estimates()->send(array $data)`
+**Method:** `Smartbill::estimates()->create(array $data)`
 
 **Description:**
 
@@ -3073,7 +3073,7 @@ Se va face stergerea primei incasari gasite in baza de date pentru clientul **cl
 ## Email
 
 ### Trimitere factura pe email ca atasament
-**Method:** `Smartbill::invoices()->send(array $data)`
+**Method:** `Smartbill::document()->send(array $data)`
 
 **Description:**
 
@@ -3128,7 +3128,7 @@ QnVuYSB6aXVhLCA8L2JyPjwvYnI+QXRhc2F0IHZhIHRyYW5zbWl0ZW0gPGI+PGk+I3RpcCBkb2N1bWVu
 ---
 
 ### Trimitere proforma pe email ca atasament
-**Method:** `Smartbill::estimates()->send(array $data)`
+**Method:** `Smartbill::document()->send(array $data)`
 
 **Description:**
 
@@ -3178,6 +3178,155 @@ QnVuYSB6aXVhLCA8L2JyPjwvYnI+QXRhc2F0IHZhIHRyYW5zbWl0ZW0gPGI+PGk+I3RpcCBkb2N1bWVu
     "to": "{{clientEmail}}",
     "bodyText": "QnVuYSB6aXVhLCA8L2JyPjwvYnI+QXRhc2F0IHZhIHRyYW5zbWl0ZW0gPGI+PGk+I3RpcCBkb2N1bWVudCMgI3NlcmllIG51bWFyIGRvY3VtZW50IzwvaT48L2I+IGVtaXNhIGluIGRhdGEgZGUgPGk+I2RhdGEgZW1pdGVyaWkjPC9pPiwgaW4gdmFsb2FyZSBkZSA8aT4jdG90YWwgZG9jdW1lbnQjPC9pPi4gPC9icj48L2JyPiBNdWx0dW1pbSBwZW50cnUgY29sYWJvcmFyZSE="
 }
+```
+
+---
+
+## Configurari
+
+### Interogare cote TVA
+**Method:** `Smartbill::taxes()->list(string $cif)`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre cotele TVA definite in pagina [Cote TVA](https://cloud.smartbill.ro/core/configurare/cote-tva/) fara a fi necesara accesarea contului SmartBill Cloud.
+
+Metoda returneaza numele cotelor TVA definite si valoarea acestora.
+
+**Example Request:**
+
+```
+GET /tax?cif={{vatCode}}
+```
+
+---
+
+### Interogare serii documente
+**Method:** `Smartbill::series()->list(string $cif)`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre seriile si numerele documentelor definite in pagina [Serii documente](https://cloud.smartbill.ro/core/configurare/serii/) fara a fi necesara accesarea contului SmartBill Cloud.
+
+Metoda returneaza seriile documentelor si numarul care urmeaza sa fie emis in fiecare serie.
+
+**Example Request:**
+
+```
+GET /series?cif={{vatCode}}
+```
+
+---
+
+### Interogare serie facturi
+**Method:** `Smartbill::series()->list(string $cif, 'f')`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre seriile si numerele facturilor definite in pagina [Serii documente](https://cloud.smartbill.ro/core/configurare/serii/) fara a fi necesara accesarea contului SmartBill Cloud.
+
+Metoda returneaza seriile facturilor si numarul care urmeaza sa fie emis in fiecare serie.
+
+**Example Request:**
+
+```
+GET /series?cif={{vatCode}}&type=f
+```
+
+---
+
+### Interogare serie proforme
+**Method:** `Smartbill::series()->list(string $cif, 'p')`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre seriile si numerele proformelor definite in pagina [Serii documente](https://cloud.smartbill.ro/core/configurare/serii/) fara a fi necesara accesarea contului SmartBill Cloud.
+
+Metoda returneaza seriile proformelor si numarul care urmeaza sa fie emis in fiecare serie.
+
+**Example Request:**
+
+```
+GET /series?cif={{vatCode}}&type=p
+```
+
+---
+
+### Interogare serie chitante
+**Method:** `Smartbill::series()->list(string $cif, 'c')`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre seriile si numerele chitantelor definite in pagina [Serii documente](https://cloud.smartbill.ro/core/configurare/serii/) fara a fi necesara accesarea contului SmartBill Cloud.
+
+Metoda returneaza seriile chitantelor si numarul care urmeaza sa fie emis in fiecare serie.
+
+**Example Request:**
+
+```
+GET /series?cif={{vatCode}}&type=c
+```
+
+---
+
+## Stocuri
+
+### Interogare stoc pentru un produs specific
+**Method:** `Smartbill::stocks()->list(string $cif, string $date, ?string $warehouseName = null, ?string $productName = null, ?string $productCode = null)`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre stocul unui produs specific.
+
+Metoda returneaza:
+
+*   informatii despre gestiune:
+    *   numele gestiunii
+    *   tipul gestiunii - "en gros" sau "en detail"
+*   informatii despre produs:
+    *   numele produsului
+    *   codul produsului (doar daca firma foloseste cod produs)
+    *   unitatea de masura a produsului
+    *   stocul produsului
+
+In cazul in care este specificata gestiunea dar nu produsul, se vor returna toate produsele de pe gestiune.
+
+In cazul in care este specificat produsul dar nu gestiunea, vor fi returnate toate gestiunile in care apare produsul impreuna cu informatiile produsului pe fiecare gestiune in parte.
+
+In cazul in care nu este specificata nici gestiunea nici produsul, se vor prelua informatiile tuturor gestiunilor si toate produsele din acestea.
+
+**Example Request:**
+
+```
+GET /stocks?cif={{vatCode}}&date={{todayDate}}&warehouseName={{warehouseName}}&productName={{productName}}&productCode={{productCode}}
+```
+
+---
+
+### Interogare stocuri dintr-o anumita gestiune
+**Method:** `Smartbill::stocks()->list(string $cif, string $date, string $warehouseName)`
+
+**Description:**
+
+Metoda este folosita pentru a afla informatii despre stocurile produselor dintr-o anumita gestiune.
+
+Metoda returneaza:
+
+*   informatii despre gestiune:
+    *   numele gestiunii
+    *   tipul gestiunii - "en gros" sau "en detail"
+*   informatii despre produse:
+    *   numele produselor
+    *   codul produselor (doar daca firma foloseste cod produs)
+    *   unitatea de masura a produselor
+    *   stocul produselor
+
+In cazul in care nu este specificata gestiunea, se vor prelua informatiile tuturor gestiunilor si toate produsele din acestea.
+
+**Example Request:**
+
+```
+GET /stocks?cif={{vatCode}}&date={{todayDate}}&warehouseName={{warehouseName}}
 ```
 
 ---

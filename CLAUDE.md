@@ -1,6 +1,6 @@
 # Smartbill
 
-Laravel package wrapping the Smartbill.ro REST API. Target **PHP 8.2** — CI runs `prefer-lowest` on 8.2 across Laravel 11/12/13 on Ubuntu + Windows, so avoid 8.3+ syntax.
+Laravel package wrapping the Smartbill.ro REST API. Target **PHP 8.2** — CI runs `prefer-lowest` on 8.2 across Laravel 11/12 on Ubuntu + Windows (Laravel 13 requires PHP 8.3+, so that matrix row is excluded), so avoid 8.3+ syntax in code that must work on L11/L12.
 
 ## Commands
 
@@ -45,7 +45,7 @@ Optional query params are appended conditionally (see [SeriesEndpoint::list()](s
 
 ## Config
 
-Env vars: `SMARTBILL_API_USERNAME`, `SMARTBILL_API_TOKEN`, optional `SMARTBILL_API_URL` (defaults to `https://ws.smartbill.ro/SBORO/api`). See [config/smartbill.php](config/smartbill.php). **README uses the wrong name `SMARTBILL_USERNAME` — the real one is `SMARTBILL_API_USERNAME`.**
+Env vars: `SMARTBILL_API_USERNAME`, `SMARTBILL_API_TOKEN`, optional `SMARTBILL_API_URL` (defaults to `https://ws.smartbill.ro/SBORO/api`). See [config/smartbill.php](config/smartbill.php).
 
 ## Test pattern
 
