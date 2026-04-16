@@ -2,6 +2,7 @@
 
 namespace AndreiLungeanu\Smartbill;
 
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
 use Spatie\LaravelPackageTools\Package;
@@ -18,7 +19,7 @@ class SmartbillServiceProvider extends PackageServiceProvider
 
     public function packageRegistered(): void
     {
-        $this->app->singleton(Smartbill::class, function ($app) {
+        $this->app->singleton(Smartbill::class, function (Application $app) {
             $config = $app['config']['smartbill'];
 
             if (empty($config['api_username'])) {

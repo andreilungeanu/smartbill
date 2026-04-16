@@ -3,16 +3,18 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use Illuminate\Http\Client\Response;
 
 class TaxesEndpoint extends BaseEndpoint
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function list(string $cif): array
     {
-        $response = $this->client
+        return $this->client
             ->get('/tax', ['cif' => $cif])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 }

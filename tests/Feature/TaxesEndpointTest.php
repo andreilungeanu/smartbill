@@ -1,5 +1,6 @@
 <?php
 
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Support\Facades\Http;
 
@@ -23,4 +24,4 @@ it('throws an exception when the get vat rates request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->taxes()->list('test');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);

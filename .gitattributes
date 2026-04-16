@@ -1,6 +1,21 @@
 # Path-based git attributes
 # https://www.kernel.org/pub/software/scm/git/docs/gitattributes.html
 
+# Line endings
+* text=auto eol=lf
+
+*.php text eol=lf
+*.json text eol=lf
+*.neon text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Binary files - don't touch
+*.png binary
+*.jpg binary
+*.pdf binary
+
 # Ignore all test and documentation with "export-ignore".
 /.github            export-ignore
 /.gitattributes     export-ignore

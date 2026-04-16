@@ -22,10 +22,11 @@
         "spatie/laravel-package-tools": "^1.0"
     },
     "require-dev": {
-        "pestphp/pest": "^3.0",
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.0",
         "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-type-coverage": "^4.0",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0"
@@ -58,7 +59,9 @@
         ],
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
+        "test:parallel": "vendor/bin/pest --parallel",
         "test-coverage": "vendor/bin/pest --coverage",
+        "test:type-coverage": "vendor/bin/pest --type-coverage",
         "format": "vendor/bin/pint",
         "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
         "serve": [

@@ -1,5 +1,6 @@
 <?php
 
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Support\Facades\Http;
 
@@ -23,4 +24,4 @@ it('throws an exception when the get stocks request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->stocks()->list('test', '2025-06-14');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);

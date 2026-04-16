@@ -3,64 +3,73 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use Illuminate\Http\Client\Response;
 
 class PaymentsEndpoint extends BaseEndpoint
 {
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     public function create(array $data): array
     {
-        $response = $this->client
+        return $this->client
             ->post('/payment', $data)
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getText(string $cif, string $id): array
     {
-        $response = $this->client
+        return $this->client
             ->get('/payment/text', [
                 'cif' => $cif,
                 'id' => $id,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function deleteReceipt(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client
+        return $this->client
             ->delete('/payment/chitanta', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function deleteByInvoice(string $cif, string $paymentType, string $invoiceSeries, string $invoiceNumber): array
     {
-        $response = $this->client
+        return $this->client
             ->delete('/payment/v2', [
                 'cif' => $cif,
                 'paymentType' => $paymentType,
                 'invoiceSeries' => $invoiceSeries,
                 'invoiceNumber' => $invoiceNumber,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function deleteByPayment(string $cif, string $paymentType, string $paymentDate, float $paymentValue, string $clientName, string $clientCif): array
     {
-        $response = $this->client
+        return $this->client
             ->delete('/payment/v2', [
                 'cif' => $cif,
                 'paymentType' => $paymentType,
@@ -69,9 +78,7 @@ class PaymentsEndpoint extends BaseEndpoint
                 'clientName' => $clientName,
                 'clientCif' => $clientCif,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 }

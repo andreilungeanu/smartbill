@@ -3,9 +3,13 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use Illuminate\Http\Client\Response;
 
 class StocksEndpoint extends BaseEndpoint
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function list(string $cif, string $date, ?string $warehouseName = null, ?string $productName = null, ?string $productCode = null): array
     {
         $data = [
@@ -25,11 +29,9 @@ class StocksEndpoint extends BaseEndpoint
             $data['productCode'] = $productCode;
         }
 
-        $response = $this->client
+        return $this->client
             ->get('/stocks', $data)
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 }

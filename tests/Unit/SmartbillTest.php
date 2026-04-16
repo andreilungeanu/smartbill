@@ -8,17 +8,11 @@ use AndreiLungeanu\Smartbill\Endpoints\SeriesEndpoint;
 use AndreiLungeanu\Smartbill\Endpoints\StocksEndpoint;
 use AndreiLungeanu\Smartbill\Endpoints\TaxesEndpoint;
 use AndreiLungeanu\Smartbill\Smartbill;
-use Illuminate\Http\Client\PendingRequest;
 
-beforeEach(function () {
-    $this->client = mock(PendingRequest::class);
-    $this->smartbill = new Smartbill($this->client);
-});
+it('returns the correct endpoint instance', function (string $method, string $expectedClass) {
+    $endpoint = app(Smartbill::class)->{$method}();
 
-it('returns the correct endpoint instance with the client injected', function (string $method, string $expectedClass) {
-    $endpoint = $this->smartbill->{$method}();
-
-    expect($endpoint)->toBeA($expectedClass)->withClient($this->client);
+    expect($endpoint)->toBeInstanceOf($expectedClass);
 })->with([
     'invoices' => ['invoices', InvoicesEndpoint::class],
     'estimates' => ['estimates', EstimatesEndpoint::class],

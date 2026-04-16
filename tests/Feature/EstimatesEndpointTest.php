@@ -1,5 +1,6 @@
 <?php
 
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +24,7 @@ it('throws an exception when the create estimate request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->create(['client' => ['name' => 'Test Client']]);
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can create a v2 estimate', function () {
     Http::fake([
@@ -57,7 +58,7 @@ it('throws an exception when the get estimate pdf request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->getPdf('test-cif', 'test-series', '123');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can get estimate invoices', function () {
     Http::fake([
@@ -79,7 +80,7 @@ it('throws an exception when the get estimate invoices request fails', function 
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->getInvoices('test-cif', 'test-series', '123');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can cancel an estimate', function () {
     Http::fake([
@@ -101,7 +102,7 @@ it('throws an exception when the cancel estimate request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->cancel('test-cif', 'test-series', '123');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can restore an estimate', function () {
     Http::fake([
@@ -123,7 +124,7 @@ it('throws an exception when the restore estimate request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->restore('test-cif', 'test-series', '123');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can delete an estimate', function () {
     Http::fake([
@@ -145,4 +146,4 @@ it('throws an exception when the delete estimate request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->estimates()->delete('test-cif', 'test-series', '123');
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);

@@ -3,111 +3,119 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use Illuminate\Http\Client\Response;
 
 class InvoicesEndpoint extends BaseEndpoint
 {
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     public function create(array $data): array
     {
-        $response = $this->client
+        return $this->client
             ->post('/invoice', $data)
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
     public function createV2(array $data): array
     {
-        $response = $this->client
+        return $this->client
             ->post('/invoice/v2', $data)
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        $response = $this->client
+        return $this->client
             ->get('/invoice/pdf', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->body();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getPaymentStatus(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client
+        return $this->client
             ->get('/invoice/paymentstatus', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function reverse(string $cif, string $seriesName, string $number, string $issueDate): array
     {
-        $response = $this->client
+        return $this->client
             ->post('/invoice/reverse', [
                 'companyVatCode' => $cif,
                 'seriesName' => $seriesName,
                 'number' => $number,
                 'issueDate' => $issueDate,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client
+        return $this->client
             ->put('/invoice/cancel', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client
+        return $this->client
             ->put('/invoice/restore', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client
+        return $this->client
             ->delete('/invoice', [
                 'cif' => $cif,
                 'seriesname' => $seriesName,
                 'number' => $number,
             ])
-            ->throw(fn ($response) => throw new SmartbillApiException($response))
+            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
-
-        return $response;
     }
 }

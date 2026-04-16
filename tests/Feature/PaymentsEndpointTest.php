@@ -1,5 +1,6 @@
 <?php
 
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Support\Facades\Http;
 
@@ -23,7 +24,7 @@ it('throws an exception when the create payment request fails', function () {
     $smartbill = app(Smartbill::class);
 
     $smartbill->payments()->create(['value' => 100]);
-})->throws(\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException::class);
+})->throws(SmartbillApiException::class);
 
 it('can delete a payment by invoice', function () {
     Http::fake([

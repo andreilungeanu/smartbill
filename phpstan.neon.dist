@@ -6,4 +6,17 @@ parameters:
     paths:
         - src
         - tests
+    excludePaths:
+        # Pest arch tests use arch()->preset()/expect() fluent API that
+        # PHPStan can't introspect without Pest-specific stubs. The tests
+        # validate themselves at runtime via reflection; PHPStan analysis
+        # adds no value here.
+        - tests/ArchTest.php
     tmpDir: build/phpstan
+    # Orchestra's parent TestCase has untyped $app params. We can't add a
+    # native type (PHP LSP violation) and typeCoverage rule doesn't count
+    # PHPDoc. This suppression is scoped to the Orchestra boundary only.
+    ignoreErrors:
+        -
+            identifier: typeCoverage.paramTypeCoverage
+            path: tests/TestCase.php
