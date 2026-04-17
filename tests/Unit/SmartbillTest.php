@@ -22,3 +22,24 @@ it('returns the correct endpoint instance', function (string $method, string $ex
     'stocks' => ['stocks', StocksEndpoint::class],
     'document' => ['document', DocumentEndpoint::class],
 ]);
+
+it('applies the configured timeout to the underlying HTTP client', function () {
+    config()->set('smartbill.timeout', 7);
+    app()->forgetInstance(Smartbill::class);
+
+    $smartbill = app(Smartbill::class);
+
+    $reflection = new ReflectionClass($smartbill);
+    $clientProperty = $reflection->getProperty('client');
+    $clientProperty->setAccessible(true);
+    $client = $clientProperty->getValue($smartbill);
+
+    $optionsProperty = (new ReflectionClass($client))->getProperty('options');
+    $optionsProperty->setAccessible(true);
+
+    expect($optionsProperty->getValue($client))->toMatchArray(['timeout' => 7]);
+});
+
+it('defaults the timeout to 30 seconds when no config is set', function () {
+    expect(config('smartbill.timeout'))->toBe(30);
+});

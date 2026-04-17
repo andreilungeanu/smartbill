@@ -26,6 +26,9 @@ This will create a `config/smartbill.php` file in your application's config dire
 ```
 SMARTBILL_API_USERNAME=your-username
 SMARTBILL_API_TOKEN=your-api-token
+
+# Optional — HTTP request timeout in seconds (default: 30)
+SMARTBILL_TIMEOUT=30
 ```
 
 ## Usage Examples

@@ -32,6 +32,7 @@ class SmartbillServiceProvider extends PackageServiceProvider
 
             $client = Http::withBasicAuth($config['api_username'], $config['api_token'])
                 ->baseUrl($config['api_url'])
+                ->timeout($config['timeout'])
                 ->acceptJson();
 
             return new Smartbill($client);

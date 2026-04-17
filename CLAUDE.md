@@ -45,7 +45,7 @@ Optional query params are appended conditionally (see [SeriesEndpoint::list()](s
 
 ## Config
 
-Env vars: `SMARTBILL_API_USERNAME`, `SMARTBILL_API_TOKEN`, optional `SMARTBILL_API_URL` (defaults to `https://ws.smartbill.ro/SBORO/api`). See [config/smartbill.php](config/smartbill.php).
+Env vars: `SMARTBILL_API_USERNAME`, `SMARTBILL_API_TOKEN`, optional `SMARTBILL_API_URL` (defaults to `https://ws.smartbill.ro/SBORO/api`), optional `SMARTBILL_TIMEOUT` in seconds (defaults to 30). See [config/smartbill.php](config/smartbill.php).
 
 ## Test pattern
 
