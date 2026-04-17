@@ -3,6 +3,7 @@
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 it('builds from a Response with errorText JSON', function () {
     Http::fake([
@@ -42,4 +43,35 @@ it('uses default message when body is empty', function () {
 
     expect($exception->getMessage())->toBe('Smartbill API error');
     expect($exception->getCode())->toBe(503);
+});
+
+it('does not log when the exception is constructed', function () {
+    $spy = Log::spy();
+
+    Http::fake([
+        'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
+    ]);
+    $response = Http::get('https://example.com/test');
+
+    new SmartbillApiException($response);
+
+    $spy->shouldNotHaveReceived('error');
+});
+
+it('logs when report() is called on the exception', function () {
+    $spy = Log::spy();
+
+    Http::fake([
+        'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
+    ]);
+    $response = Http::get('https://example.com/test');
+
+    (new SmartbillApiException($response))->report();
+
+    $spy->shouldHaveReceived('error', [
+        'Smartbill API Error',
+        Mockery::on(fn (array $ctx): bool => $ctx['status'] === 400
+            && str_contains($ctx['body'], 'Invalid CIF')
+        ),
+    ]);
 });

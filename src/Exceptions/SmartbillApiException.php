@@ -12,7 +12,6 @@ class SmartbillApiException extends Exception
     {
         $body = $response->json();
         $message = 'Smartbill API error';
-        $logBody = $body;
 
         if (is_array($body) && isset($body['errorText'])) {
             $message = $body['errorText'];
@@ -21,19 +20,21 @@ class SmartbillApiException extends Exception
             if (! empty($rawBody)) {
                 $message = $rawBody;
             }
-            $logBody = strip_tags($rawBody);
         }
 
         parent::__construct($message, $response->status());
-
-        Log::error('Smartbill API Error', [
-            'status' => $response->status(),
-            'body' => $logBody,
-        ]);
     }
 
     public function getResponse(): Response
     {
         return $this->response;
+    }
+
+    public function report(): void
+    {
+        Log::error('Smartbill API Error', [
+            'status' => $this->response->status(),
+            'body' => strip_tags((string) $this->response->body()),
+        ]);
     }
 }

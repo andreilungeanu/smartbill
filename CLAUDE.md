@@ -18,7 +18,7 @@ Single test: `vendor/bin/pest --filter='can create an invoice'`. CI auto-fixes P
 - [src/Smartbill.php](src/Smartbill.php) — dispatcher. One method per API resource, each returns an endpoint object.
 - [src/Endpoints/](src/Endpoints/) — 7 endpoint classes (Invoices, Estimates, Payments, Taxes, Series, Stocks, Document). All extend [BaseEndpoint](src/Endpoints/BaseEndpoint.php), which just holds an injected `PendingRequest`.
 - [src/SmartbillServiceProvider.php](src/SmartbillServiceProvider.php) — binds `Smartbill::class` **as a singleton** with a basic-auth `PendingRequest`. Throws `InvalidArgumentException` at resolve time if creds are empty.
-- [src/Exceptions/SmartbillApiException.php](src/Exceptions/SmartbillApiException.php) — takes a failing `Response`. Message = JSON `errorText` → raw body → `"Smartbill API error"`. HTTP status → exception code. Always logs.
+- [src/Exceptions/SmartbillApiException.php](src/Exceptions/SmartbillApiException.php) — takes a failing `Response`. Message = JSON `errorText` → raw body → `"Smartbill API error"`. HTTP status → exception code. Logs via Laravel's `report()` method — caught exceptions stay silent, unhandled ones hit the framework's exception handler.
 - Full upstream API reference: [DOCUMENTATION.md](DOCUMENTATION.md). Consult before inventing endpoint signatures.
 
 ## Entry points
