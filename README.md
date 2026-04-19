@@ -59,10 +59,11 @@ Direct instantiation with `new Smartbill()` is no longer possible due to the new
 
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Factory;
 
 // Manually create and configure the HTTP client
-$client = Http::withBasicAuth('your-username', 'your-api-token')
+$http = new Factory();
+$client = $http->withBasicAuth('your-username', 'your-api-token')
     ->baseUrl('https://ws.smartbill.ro/SBORO/api')
     ->acceptJson();
 
