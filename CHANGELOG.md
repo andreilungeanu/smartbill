@@ -7,8 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-22
+
+### Fixed
+- Send PUT/DELETE parameters as a query string, which is what Smartbill expects, instead
+  of a JSON body — `cancel()`, `restore()` and `delete()` never reached the API before
+- Repair invalid YAML indentation that stopped GitHub rendering the bug report template
+- Correct the documented `getPdf()` failure behaviour: it throws, it does not return an array
+
+### Added
+- Annotate the `Smartbill` facade with the endpoint methods, so editors resolve them
+- CONTRIBUTING and SECURITY policy
+
 ### Changed
-- Fix manual instantiation example for outside Laravel usage
+- Upgrade the test suite to Pest 5 (`describe` groups, named datasets, PHPStan plugin).
+  Pest 5 requires PHP 8.4, so CI now runs 8.4/8.5; `src/` still targets PHP 8.2
+- Drop PHPStan suppressions that no longer matched anything
+- Refresh `.gitignore` and `.gitattributes`
 
 ## [1.3.0] - 2026-04-19
 
