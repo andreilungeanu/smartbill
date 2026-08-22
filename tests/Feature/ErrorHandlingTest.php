@@ -130,3 +130,21 @@ describe('optional query parameters', function () {
         Http::assertSent(fn (Request $request): bool => ! str_contains($request->url(), 'productCode'));
     });
 });
+
+describe('the document/send envelope', function () {
+    it('reads the cause out of a nested status object', function (): void {
+        fakeApi(['status' => ['code' => 1, 'message' => 'Documentul nu a fost gasit']], 400);
+
+        smartbill()->document()->send(['companyVatCode' => 'RO39521446']);
+    })->throws(SmartbillApiException::class, 'Documentul nu a fost gasit');
+
+    it('does not mistake the integer status of invalid_request_error for it', function (): void {
+        fakeApi([
+            'status' => 400,
+            'type' => 'invalid_request_error',
+            'errors' => [['code' => 'json_mapping_error', 'message' => 'Unrecognized property: zzz.', 'param' => 'zzz']],
+        ], 400);
+
+        smartbill()->document()->send([]);
+    })->throws(SmartbillRequestException::class, 'Unrecognized property: zzz. (zzz)');
+});

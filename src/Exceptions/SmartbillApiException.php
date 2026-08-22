@@ -84,6 +84,10 @@ class SmartbillApiException extends Exception
     {
         $text = $this->getErrorText();
 
+        if ($text === '') {
+            $text = $this->nestedStatusMessage();
+        }
+
         // Only a non-JSON body (an HTML 500 page, plain text) is worth quoting raw.
         // A JSON body with no usable errorText would just dump the envelope.
         if ($text === '' && ! is_array($this->response->json())) {
@@ -91,6 +95,24 @@ class SmartbillApiException extends Exception
         }
 
         return self::firstSentence($text) ?: 'Smartbill API error';
+    }
+
+    /**
+     * /document/send answers with a third envelope of its own:
+     * {"status": {"code": 1, "message": "Documentul nu a fost gasit"}} — no errorText.
+     * invalid_request_error bodies also carry "status", but as an int, so the array
+     * check keeps the two apart.
+     */
+    protected function nestedStatusMessage(): string
+    {
+        $body = $this->response->json();
+        $status = is_array($body) ? ($body['status'] ?? null) : null;
+
+        if (is_array($status) && is_string($status['message'] ?? null)) {
+            return trim($status['message']);
+        }
+
+        return '';
     }
 
     /**
