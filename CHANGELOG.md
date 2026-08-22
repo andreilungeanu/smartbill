@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-08-22
+
+Development tooling only. No runtime code changed and the supported Laravel range in
+`require` is unchanged, so the installed package is identical to 2.0.0.
+
+### Changed
+- `orchestra/testbench` now requires `^11.0`. Pest 5 resolves PHPUnit 13 and
+  `symfony/process` 8, which the testbench 9 and 10 lines pin to `^7.2`, so the previous
+  `^9.0|^10.0|^11.0` could never be satisfied alongside Pest 5
+- CI runs Laravel 12 on Pest 4 and Laravel 13 on Pest 5; the suite passes unchanged on
+  both. The Laravel 11 row is dropped, its security window having closed in March 2026
+- CI floors `orchestra/testbench` at `^10.6` for Laravel 12. Versions 10.2 through 10.5
+  call `HandleExceptions::flushState()` against a PHPUnit whose `ErrorHandler::enable()`
+  signature changed, which failed the suite on `prefer-lowest`
+- `fail-fast` is off, so a single red cell no longer cancels the rest of the matrix
+- README, CLAUDE.md and CONTRIBUTING no longer claim Laravel 11 is covered by CI
+
 ## [2.0.0] - 2026-08-22
 
 ### Breaking
