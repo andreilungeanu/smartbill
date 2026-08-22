@@ -152,7 +152,7 @@ $series = 'SBINV';
 $number = '0044';
 
 // The getPdf method returns the raw PDF content as a string on success,
-// or an array with error details if not found or failed.
+// and throws SmartbillApiException if the request fails.
 try {
     $pdfContent = Smartbill::invoices()->getPdf($cif, $series, $number);
     Storage::disk('local')->put("invoices/{$series}-{$number}.pdf", $pdfContent);
