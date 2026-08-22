@@ -87,6 +87,8 @@ declared in a test file must not collide with a Laravel global (`response()` doe
 - `POST /invoice` and `POST /estimate` are live but absent from the OpenAPI spec and answer
   with a smaller envelope (no `documentUrl`/`documentId`/`documentViewUrl`). They are
   `@deprecated` in favour of `createV2()`.
+- `/document/send` answers with a third error envelope, in neither the spec nor the prose:
+  `{"status": {"code": 1, "message": "..."}}` — no `errorText`. `resolveMessage()` reads it.
 - `/invoice/pdf` answers **502 with an nginx HTML page** for a missing parameter or unknown
   document, and `/payment/text` answers 500 with a Tomcat page. `SmartbillApiException`
   keeps only the text before the first `<`; the raw body stays on `getResponse()`.
