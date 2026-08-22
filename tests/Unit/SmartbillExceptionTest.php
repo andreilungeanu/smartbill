@@ -7,6 +7,9 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @param  array<string, string>  $headers
+ */
 function failing(mixed $body, int $status = 400, array $headers = []): Response
 {
     Http::fake(['https://example.com/*' => Http::response($body, $status, $headers)]);

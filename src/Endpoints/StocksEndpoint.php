@@ -2,9 +2,6 @@
 
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
-use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\Response;
-
 class StocksEndpoint extends BaseEndpoint
 {
     /**
@@ -29,9 +26,6 @@ class StocksEndpoint extends BaseEndpoint
             $data['productCode'] = $productCode;
         }
 
-        return $this->client
-            ->get('/stocks', $data)
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->get('/stocks', $data));
     }
 }

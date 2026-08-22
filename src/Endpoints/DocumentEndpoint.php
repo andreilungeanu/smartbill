@@ -2,9 +2,6 @@
 
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
-use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\Response;
-
 class DocumentEndpoint extends BaseEndpoint
 {
     /**
@@ -13,9 +10,6 @@ class DocumentEndpoint extends BaseEndpoint
      */
     public function send(array $data): array
     {
-        return $this->client
-            ->post('/document/send', $data)
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->post('/document/send', $data));
     }
 }

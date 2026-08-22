@@ -35,7 +35,16 @@ class SmartbillApiException extends Exception
      */
     public function getErrorText(): string
     {
-        $body = $this->response->json();
+        return self::errorTextIn($this->response);
+    }
+
+    /**
+     * Read errorText without building an exception — callers check this on every
+     * response, and constructing an exception captures a stack trace.
+     */
+    public static function errorTextIn(Response $response): string
+    {
+        $body = $response->json();
 
         if (is_array($body) && is_string($body['errorText'] ?? null)) {
             return trim($body['errorText']);

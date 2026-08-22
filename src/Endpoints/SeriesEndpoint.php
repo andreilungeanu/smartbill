@@ -2,9 +2,6 @@
 
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
-use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\Response;
-
 class SeriesEndpoint extends BaseEndpoint
 {
     /**
@@ -18,9 +15,6 @@ class SeriesEndpoint extends BaseEndpoint
             $data['type'] = $type;
         }
 
-        return $this->client
-            ->get('/series', $data)
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->get('/series', $data));
     }
 }

@@ -2,9 +2,6 @@
 
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
-use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\Response;
-
 class EstimatesEndpoint extends BaseEndpoint
 {
     /**
@@ -13,10 +10,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function create(array $data): array
     {
-        return $this->client
-            ->post('/estimate', $data)
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->post('/estimate', $data));
     }
 
     /**
@@ -25,22 +19,16 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function createV2(array $data): array
     {
-        return $this->client
-            ->post('/estimate/v2', $data)
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->post('/estimate/v2', $data));
     }
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        return $this->client
-            ->get('/estimate/pdf', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->body();
+        return $this->download($this->client->get('/estimate/pdf', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ]));
     }
 
     /**
@@ -48,14 +36,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function getInvoices(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->get('/estimate/invoices', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        return $this->decode($this->client->get('/estimate/invoices', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ]));
     }
 
     /**
@@ -63,13 +48,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->sendQuery('PUT', '/estimate/cancel', [
+        return $this->decode($this->sendQuery('PUT', '/estimate/cancel', [
             'cif' => $cif,
             'seriesname' => $seriesName,
             'number' => $number,
-        ])
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        ]));
     }
 
     /**
@@ -77,13 +60,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->sendQuery('PUT', '/estimate/restore', [
+        return $this->decode($this->sendQuery('PUT', '/estimate/restore', [
             'cif' => $cif,
             'seriesname' => $seriesName,
             'number' => $number,
-        ])
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        ]));
     }
 
     /**
@@ -91,12 +72,10 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->sendQuery('DELETE', '/estimate', [
+        return $this->decode($this->sendQuery('DELETE', '/estimate', [
             'cif' => $cif,
             'seriesname' => $seriesName,
             'number' => $number,
-        ])
-            ->throw(fn (Response $response) => throw new SmartbillApiException($response))
-            ->json();
+        ]));
     }
 }
