@@ -127,7 +127,7 @@ try {
 
 #### Example API Response
 
-A successful `create` call will return an array decoded from the following JSON structure:
+A successful `createV2` call will return an array decoded from the following JSON structure:
 
 ```json
 {
@@ -135,9 +135,15 @@ A successful `create` call will return an array decoded from the following JSON 
     "message": "",
     "number": "0044",
     "series": "SBINV",
-    "url": ""
+    "url": "",
+    "documentUrl": "https://cloud.smartbill.ro/documente/editare/factura/20363/",
+    "documentId": 20363,
+    "documentViewUrl": "https://cloud.smartbill.ro/documente/extern/pf/factura/f6a9a7d3..."
 }
 ```
+
+`documentViewUrl` is a public link to the PDF that needs no authentication.
+The deprecated `create()` returns the same body without the last three keys.
 
 ---
 
@@ -170,29 +176,29 @@ try {
 
 This is just a small sample of the available methods. For a complete list of all available endpoints and their parameters, please see the [full documentation](DOCUMENTATION.md).
 
-## Known Issues
+## Error handling
 
-When working with the Smartbill API, there are a few known issues to be aware of:
+A misspelled or wrongly typed field is rejected with `400` and a body that names the
+offending field. The package surfaces it as `SmartbillRequestException`:
 
-1.  **Internal Server Errors on Invalid Request Data**:
-    The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.
+```php
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillRequestException;
 
-    For example, sending `nume` instead of `name` in the client object will trigger a `500` error:
-    ```php
-    $invoiceData = [
-        "companyVatCode" => "YOUR_COMPANY_VAT_CODE",
-        "client" => [
-          "nume" => "Test Client SRL", // Incorrect: should be "name"
-          "vatCode" => "12345678",
-          // ...
-        ],
-        // ...
-    ];
-    ```
+try {
+    Smartbill::invoices()->createV2($invoiceData);
+} catch (SmartbillRequestException $e) {
+    $e->getParam();     // "client.nume", or "products[0].quantity" inside a list
+    $e->getErrorCode(); // "json_mapping_error"
+}
+```
 
-    Ideally, the API should respond with a `400 Bad Request` status and a helpful error message detailing which field is incorrect. Instead, it returns a generic `500` error, which makes debugging difficult as it incorrectly suggests a server-side failure rather than a client-side mistake.
+Every other failure throws `SmartbillApiException`. `getMessage()` is the cause only —
+Smartbill sometimes wraps it in HTML meant for its own interface, and that is stripped.
+`getResponse()` still holds the untouched response.
 
-While this package attempts to mitigate these issues where possible, the fundamental problems lie with the API's implementation. We are awaiting fixes from the Smartbill provider to ensure more reliable and standards-compliant behavior.
+Exceeding the rate limit (30 calls per 10 seconds per token) throws
+`SmartbillRateLimitException` and locks the token for ten minutes. Do not retry it.
+
 ## Testing
 
 ```bash
