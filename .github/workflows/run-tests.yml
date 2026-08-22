@@ -62,3 +62,6 @@ jobs:
 
       - name: Execute tests
         run: vendor/bin/pest --ci
+
+      - name: Check type coverage
+        run: vendor/bin/pest --type-coverage --min=100
