@@ -18,14 +18,16 @@ Single test: `vendor/bin/pest --filter='returns the invoice number'`. CI auto-fi
 - [src/Smartbill.php](src/Smartbill.php) — dispatcher. One method per API resource, each returns an endpoint object.
 - [src/Endpoints/](src/Endpoints/) — 7 endpoint classes (Invoices, Estimates, Payments, Taxes, Series, Stocks, Document). All extend [BaseEndpoint](src/Endpoints/BaseEndpoint.php), which holds an injected `PendingRequest` and `sendQuery()` for query-string PUT/DELETE.
 - [src/SmartbillServiceProvider.php](src/SmartbillServiceProvider.php) — binds `Smartbill::class` **as a singleton** with a basic-auth `PendingRequest`. Throws `InvalidArgumentException` at resolve time if creds are empty.
-- [src/Exceptions/SmartbillApiException.php](src/Exceptions/SmartbillApiException.php) — takes a failing `Response`. Message = JSON `errorText` → raw body → `"Smartbill API error"`. HTTP status → exception code. Logs via Laravel's `report()` method — caught exceptions stay silent, unhandled ones hit the framework's exception handler.
-- Full upstream API reference: [DOCUMENTATION.md](DOCUMENTATION.md). Consult before inventing endpoint signatures.
+- [src/Exceptions/SmartbillApiException.php](src/Exceptions/SmartbillApiException.php) — takes a failing `Response`. Message = JSON `errorText` → raw body → `"Smartbill API error"`. HTTP status → exception code. Adds status and a truncated body through `context()`, so the framework's own log entry keeps its stack trace; caught exceptions stay silent.
+- Upstream contract: [docs/smartbill-openapi-spec.json](docs/smartbill-openapi-spec.json) (OpenAPI 3.1;
+  its `info.description` holds rules absent from the schemas). [DOCUMENTATION.md](DOCUMENTATION.md)
+  is an older transcription — it still shows `create()` and stale VAT rates, so prefer the spec.
 
 ## Entry points
 
 ```php
-Smartbill::invoices()->create($data);           // facade
-app(Smartbill::class)->invoices()->create($data); // container
+Smartbill::invoices()->createV2($data);           // facade
+app(Smartbill::class)->invoices()->createV2($data); // container
 ```
 
 Both resolve the same singleton. Tests use the container form.
@@ -94,8 +96,10 @@ declared in a test file must not collide with a Laravel global (`response()` doe
 - `/document/send` requires `subject` and `bodyText` **Base64 encoded**; plain text is
   rejected with a 400. `payments()->getText()` mirrors it — the receipt text comes back
   Base64 in `message`. Neither is encoded or decoded by the package.
-- `/document/send` answers with a third error envelope, in neither the spec nor the prose:
-  `{"status": {"code": 1, "message": "..."}}` — no `errorText`. `resolveMessage()` reads it.
+- `/document/send` answers with a third envelope the rest of V1 does not use:
+  `{"status": {"code": 0|1, "message": "..."}}` — no `errorText`. The spec models it on both
+  200 and 400, but its prose still claims errors come in only two shapes. `guard()` treats a
+  non-zero `status.code` as a failure even on a 2xx, and `resolveMessage()` reads the message.
 - `/invoice/pdf` answers **502 with an nginx HTML page** for a missing parameter or unknown
   document, and `/payment/text` answers 500 with a Tomcat page. `SmartbillApiException`
   keeps only the text before the first `<`; the raw body stays on `getResponse()`.
