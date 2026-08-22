@@ -63,12 +63,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->put('/estimate/cancel', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('PUT', '/estimate/cancel', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }
@@ -78,12 +77,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->put('/estimate/restore', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('PUT', '/estimate/restore', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }
@@ -93,12 +91,11 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->delete('/estimate', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('DELETE', '/estimate', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }

@@ -79,12 +79,11 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->put('/invoice/cancel', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('PUT', '/invoice/cancel', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }
@@ -94,12 +93,11 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->put('/invoice/restore', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('PUT', '/invoice/restore', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }
@@ -109,12 +107,11 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->client
-            ->delete('/invoice', [
-                'cif' => $cif,
-                'seriesname' => $seriesName,
-                'number' => $number,
-            ])
+        return $this->sendQuery('DELETE', '/invoice', [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ])
             ->throw(fn (Response $response) => throw new SmartbillApiException($response))
             ->json();
     }
