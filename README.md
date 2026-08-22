@@ -40,7 +40,7 @@ This is the most convenient method for use within a Laravel application.
 ```php
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
 
-$response = Smartbill::invoices()->create($invoiceData);
+$response = Smartbill::invoices()->createV2($invoiceData);
 ```
 
 #### 2. Using the Service Container
@@ -49,7 +49,7 @@ This is useful for dependency injection within your own classes.
 use AndreiLungeanu\Smartbill\Smartbill;
 
 $smartbill = app(Smartbill::class);
-$response = $smartbill->invoices()->create($invoiceData);
+$response = $smartbill->invoices()->createV2($invoiceData);
 ```
 
 Both of these methods work seamlessly because Laravel's service container automatically handles the creation of the required HTTP client and injects it into the package.
@@ -69,7 +69,7 @@ $client = $http->withBasicAuth('your-username', 'your-api-token')
 
 // Pass the configured client to the constructor
 $smartbill = new Smartbill($client);
-$response = $smartbill->invoices()->create($invoiceData);
+$response = $smartbill->invoices()->createV2($invoiceData);
 ```
 
 ### Example 1: Creating an Invoice
@@ -105,6 +105,8 @@ $invoiceData = [
         "currency" => "RON",
         "quantity" => 1,
         "price" => 10,
+        "taxName" => "Normala",
+        "taxPercentage" => 21,
         "saveToDb" => false,
         "isService" => false
       ]
@@ -113,7 +115,7 @@ $invoiceData = [
 
 // The create method returns an array with the API response
 try {
-   $response = Smartbill::invoices()->create($invoiceData);
+   $response = Smartbill::invoices()->createV2($invoiceData);
    // You can now access the invoice number
    $invoiceNumber = $response['number']; // "0044"
 } catch (\AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException $e) {
