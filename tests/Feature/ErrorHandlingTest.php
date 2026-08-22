@@ -148,3 +148,65 @@ describe('the document/send envelope', function () {
         smartbill()->document()->send([]);
     })->throws(SmartbillRequestException::class, 'Unrecognized property: zzz. (zzz)');
 });
+
+describe('the shared client', function () {
+    it('does not carry query parameters into the next call', function (): void {
+        // The whole reason sendQuery() exists: the client is a singleton, so a mutating
+        // withQueryParameters() would leak into every later request.
+        fakeApi(['errorText' => '', 'message' => 'ok'], 200);
+
+        smartbill()->invoices()->delete('RO39521446', 'TE', '0001');
+        smartbill()->taxes()->list('RO39521446');
+
+        // assertNotSent, not assertSent: assertSent passes as soon as any one request
+        // matches, which the DELETE would do on its own and hide a leak entirely.
+        Http::assertNotSent(fn (Request $request): bool => str_contains($request->url(), '/tax')
+            && (str_contains($request->url(), 'seriesname') || str_contains($request->url(), 'number=')));
+
+        Http::assertSent(fn (Request $request): bool => $request->url() === 'https://ws.smartbill.ro/SBORO/api/tax?cif=RO39521446');
+    });
+
+    it('sends no body on query verbs', function (): void {
+        fakeApi(['errorText' => '', 'message' => 'ok'], 200);
+
+        smartbill()->invoices()->cancel('RO39521446', 'TE', '0001');
+
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT' && $request->body() === '');
+    });
+});
+
+describe('pdf failures differ by endpoint', function () {
+    it('surfaces the JSON errorText of an estimate PDF', function (): void {
+        // /estimate/pdf answers a normal 400 with errorText, unlike /invoice/pdf's 502.
+        fakeApi(['errorText' => 'Proforma cu seria si numarul TP0001 nu a fost gasita!'], 400);
+
+        smartbill()->estimates()->getPdf('RO39521446', 'TP', '0001');
+    })->throws(SmartbillApiException::class, 'Proforma cu seria si numarul TP0001 nu a fost gasita!');
+});
+
+describe('rate limiting through an endpoint', function () {
+    it('raises the rate limit exception on the live 403 shape', function (): void {
+        // The live blocking response: 403, Romanian errorText, no X-RateLimit headers.
+        fakeApi(['errorText' => 'Ai depasit limita maxima de requesturi admisa. Vei putea executa alte requesturi dupa 10 min de la momentul blocarii 22/08/2026 11:40:35'], 403);
+
+        try {
+            smartbill()->taxes()->list('RO39521446');
+            $this->fail('expected SmartbillRateLimitException');
+        } catch (SmartbillRateLimitException $e) {
+            expect($e->getCode())->toBe(403)
+                ->and($e->getRemaining())->toBeNull()
+                ->and($e->getMessage())->toContain('limita maxima de requesturi');
+        }
+    });
+
+    it('leaves an ordinary 403 as the base exception', function (): void {
+        fakeApi(['errorText' => 'Factura nu este ultima din serie si nu poate fi stearsa.'], 403);
+
+        try {
+            smartbill()->invoices()->delete('RO39521446', 'TE', '0001');
+            $this->fail('expected SmartbillApiException');
+        } catch (SmartbillApiException $e) {
+            expect($e::class)->toBe(SmartbillApiException::class);
+        }
+    });
+});

@@ -55,9 +55,13 @@ class PaymentsEndpoint extends BaseEndpoint
     }
 
     /**
+     * Smartbill identifies the payment by exact match, so the value is not narrowed to
+     * float: PHP renders 100.00 as "100" and 55.10 as "55.1" on the query string. Pass
+     * a string to send the amount exactly as Smartbill stored it.
+     *
      * @return array<string, mixed>
      */
-    public function deleteByPayment(string $cif, string $paymentType, string $paymentDate, float $paymentValue, string $clientName, string $clientCif): array
+    public function deleteByPayment(string $cif, string $paymentType, string $paymentDate, int|float|string $paymentValue, string $clientName, string $clientCif): array
     {
         return $this->decode($this->sendQuery('DELETE', '/payment/v2', [
             'cif' => $cif,
