@@ -32,24 +32,33 @@ Both resolve the same singleton. Tests use the container form.
 
 ## The endpoint pattern
 
-JSON-body methods (`POST`) follow this shape:
+Every method routes its response through `decode()` (JSON) or `download()` (PDF bytes)
+from [BaseEndpoint](src/Endpoints/BaseEndpoint.php). Both call `guard()`, which is the
+only place that decides success or failure:
 
 ```php
-return $this->client
-    ->post('/path', $data)
-    ->throw(fn (Response $r) => throw new SmartbillApiException($r))
-    ->json(); // ->body() for PDFs
+return $this->decode($this->client->post('/invoice/v2', $data));   // JSON
+return $this->download($this->client->get('/invoice/pdf', $query)); // PDF bytes
 ```
 
-GET already puts the second argument on the query string. PUT/DELETE in Laravel send a JSON body, but Smartbill expects query parameters — use `sendQuery()` from [BaseEndpoint](src/Endpoints/BaseEndpoint.php) so the singleton client is not mutated:
+GET already puts the second argument on the query string. PUT/DELETE in Laravel send a
+JSON body, but Smartbill expects query parameters — use `sendQuery()` so the singleton
+client is not mutated:
 
 ```php
-return $this->sendQuery('DELETE', '/path', $query)
-    ->throw(fn (Response $r) => throw new SmartbillApiException($r))
-    ->json();
+return $this->decode($this->sendQuery('DELETE', '/invoice', $query));
 ```
 
-Optional query params are appended conditionally (see [SeriesEndpoint::list()](src/Endpoints/SeriesEndpoint.php)). When adding an endpoint, copy the matching pattern — never reach for the `Http` facade; [tests/ArchTest.php](tests/ArchTest.php) enforces that endpoints extend `BaseEndpoint`, end in `Endpoint`, and can't use `Http`/`curl_exec`/`file_get_contents`.
+`guard()` throws when the status failed **or** when `errorText` is non-empty, because a
+2xx alone does not mean success in V1. `SmartbillApiException::from()` picks the class:
+`SmartbillRateLimitException` on 429, `SmartbillRequestException` when the body is an
+`invalid_request_error`, the base class otherwise.
+
+Optional query params are appended when `!== null` — never on truthiness, since `"0"` is
+a valid `productCode` (see [StocksEndpoint::list()](src/Endpoints/StocksEndpoint.php)).
+When adding an endpoint, copy the matching pattern — never reach for the `Http` facade;
+[tests/ArchTest.php](tests/ArchTest.php) enforces that endpoints extend `BaseEndpoint`,
+end in `Endpoint`, and can't use `Http`/`curl_exec`/`file_get_contents`.
 
 ## Config
 
@@ -57,10 +66,30 @@ Env vars: `SMARTBILL_API_USERNAME`, `SMARTBILL_API_TOKEN`, optional `SMARTBILL_A
 
 ## Test pattern
 
-Feature tests use `describe()` groups, `Http::fake()`, and the `smartbill()` helper from [tests/Pest.php](tests/Pest.php). Suite credentials live in [tests/TestCase.php](tests/TestCase.php). PHPUnit runs in random order with `failOnWarning`/`failOnRisky` — new tests must be independent.
+Pest 5. [tests/Pest.php](tests/Pest.php) wires the suite with `pest()->extends(TestCase::class)`
+(not `uses(...)->in(...)`), a global `pest()->beforeEach()` that calls
+`Http::preventStrayRequests()`, and the `smartbill()` helper that resolves the container
+singleton. Named datasets live in [tests/Datasets/](tests/Datasets/) and are pulled in with
+`->with('endpoints')`.
+
+Feature tests group by method with `describe()`, fake with `Http::fake([literal-URL => ...])`,
+and assert failures with `->throws(...)`. Arch tests use the bare `arch()->expect(...)` form.
+Suite credentials live in [tests/TestCase.php](tests/TestCase.php). PHPUnit runs in random
+order with `failOnWarning`/`failOnRisky` — new tests must be independent, and a helper
+declared in a test file must not collide with a Laravel global (`response()` does).
 
 ## Gotchas
 
 - Manual instantiation requires a pre-built `PendingRequest` — the old string-credentials constructor is gone. Resolve through the container instead.
-- Smartbill's upstream API returns HTTP 500 on malformed payloads (e.g. `nume` vs `name`) instead of 400. `SmartbillApiException` surfaces whatever body came back — don't infer validation errors from the 500 itself.
+- A misspelled field (e.g. `nume` vs `name`) returns **400** with an `invalid_request_error`
+  body naming the field in `errors[].param` — verified live on both `/invoice/v2` and
+  `/invoice`. Older notes claiming a 500 with an HTML body are out of date.
+- `POST /invoice` and `POST /estimate` are live but absent from the OpenAPI spec and answer
+  with a smaller envelope (no `documentUrl`/`documentId`/`documentViewUrl`). They are
+  `@deprecated` in favour of `createV2()`.
+- `/invoice/pdf` answers **502 with an nginx HTML page** for a missing parameter or unknown
+  document, and `/payment/text` answers 500 with a Tomcat page. `SmartbillApiException`
+  keeps only the text before the first `<`; the raw body stays on `getResponse()`.
+- V1 allows 30 calls per 10 seconds per token and locks the token for ten minutes on
+  breach. Do not blind-retry a `SmartbillRateLimitException`.
 - `composer.json` sets `minimum-stability: dev` + `prefer-stable: true` — intentional, leave it.
