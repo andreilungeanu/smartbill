@@ -91,6 +91,9 @@ declared in a test file must not collide with a Laravel global (`response()` doe
   exists but has not been invoiced — confirmed live. That is the case `guard()` exists for,
   but it is a normal state there, so `getInvoices()` passes `errorTextIsFailure: false`;
   a missing estimate still answers 410 and throws.
+- `/document/send` requires `subject` and `bodyText` **Base64 encoded**; plain text is
+  rejected with a 400. `payments()->getText()` mirrors it — the receipt text comes back
+  Base64 in `message`. Neither is encoded or decoded by the package.
 - `/document/send` answers with a third error envelope, in neither the spec nor the prose:
   `{"status": {"code": 1, "message": "..."}}` — no `errorText`. `resolveMessage()` reads it.
 - `/invoice/pdf` answers **502 with an nginx HTML page** for a missing parameter or unknown
