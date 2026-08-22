@@ -48,16 +48,24 @@ class InvoicesEndpoint extends BaseEndpoint
     }
 
     /**
+     * issueDate is optional — confirmed live: omitted, empty or set all return 200 and
+     * create the storno. Only companyVatCode, seriesName and number are required.
+     *
      * @return array<string, mixed>
      */
-    public function reverse(string $cif, string $seriesName, string $number, string $issueDate): array
+    public function reverse(string $cif, string $seriesName, string $number, ?string $issueDate = null): array
     {
-        return $this->decode($this->client->post('/invoice/reverse', [
+        $data = [
             'companyVatCode' => $cif,
             'seriesName' => $seriesName,
             'number' => $number,
-            'issueDate' => $issueDate,
-        ]));
+        ];
+
+        if ($issueDate !== null) {
+            $data['issueDate'] = $issueDate;
+        }
+
+        return $this->decode($this->client->post('/invoice/reverse', $data));
     }
 
     /**

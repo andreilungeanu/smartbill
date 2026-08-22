@@ -89,6 +89,26 @@ describe('reverse', function () {
 
         smartbill()->invoices()->reverse('test-cif', 'test-series', '123', '2025-01-01');
     })->throws(SmartbillApiException::class);
+
+    it('omits issueDate when it is not given', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/invoice/reverse' => Http::response(['errorText' => '', 'number' => 'S123']),
+        ]);
+
+        smartbill()->invoices()->reverse('test-cif', 'test-series', '123');
+
+        Http::assertSent(fn (Request $request): bool => ! array_key_exists('issueDate', (array) $request->data()));
+    });
+
+    it('sends issueDate when it is given', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/invoice/reverse' => Http::response(['errorText' => '', 'number' => 'S123']),
+        ]);
+
+        smartbill()->invoices()->reverse('test-cif', 'test-series', '123', '2025-01-01');
+
+        Http::assertSent(fn (Request $request): bool => $request->data()['issueDate'] === '2025-01-01');
+    });
 });
 
 describe('cancel', function () {
