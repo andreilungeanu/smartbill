@@ -7,7 +7,7 @@ Laravel package wrapping the Smartbill.ro REST API. Runtime target is **PHP 8.2*
 ```bash
 composer test                # Pest 5
 composer test:type-coverage  # type-coverage plugin
-composer analyse             # PHPStan level 5 (src + tests)
+composer analyse             # PHPStan level 6 (src + tests)
 composer lint                # Pint + PHPStan
 ```
 

@@ -13,7 +13,7 @@ composer install
 ```bash
 composer test                # Run the Pest test suite
 composer test:type-coverage  # Type coverage check
-composer analyse             # PHPStan level 5 (src + tests)
+composer analyse             # PHPStan level 6 (src + tests)
 composer lint                # Pint + PHPStan
 ```
 
