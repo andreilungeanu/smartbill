@@ -38,6 +38,10 @@ class EstimatesEndpoint extends BaseEndpoint
      * Check areInvoicesCreated in the response to learn whether the estimate has
      * already been invoiced.
      *
+     * An estimate that exists but has not been invoiced answers HTTP 200 with a
+     * populated errorText. That is a normal state, not a failure, so errorText is
+     * not treated as one here. A missing estimate still answers 410 and throws.
+     *
      * @return array<string, mixed>
      */
     public function getInvoices(string $cif, string $seriesName, string $number): array
@@ -46,7 +50,7 @@ class EstimatesEndpoint extends BaseEndpoint
             'cif' => $cif,
             'seriesname' => $seriesName,
             'number' => $number,
-        ]));
+        ]), errorTextIsFailure: false);
     }
 
     /**

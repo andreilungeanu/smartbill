@@ -26,9 +26,9 @@ abstract class BaseEndpoint
     /**
      * @return array<string, mixed>
      */
-    protected function decode(Response $response): array
+    protected function decode(Response $response, bool $errorTextIsFailure = true): array
     {
-        $this->guard($response);
+        $this->guard($response, $errorTextIsFailure);
 
         $body = $response->json();
 
@@ -49,10 +49,13 @@ abstract class BaseEndpoint
     /**
      * A 2xx alone does not mean success: Smartbill reports functional failures with
      * HTTP 200 and a populated errorText. An empty errorText is the success signal.
+     *
+     * Pass $errorTextIsFailure = false for the endpoints where a populated errorText
+     * on a 2xx describes a normal state rather than a failure.
      */
-    protected function guard(Response $response): void
+    protected function guard(Response $response, bool $errorTextIsFailure = true): void
     {
-        if ($response->failed() || SmartbillApiException::errorTextIn($response) !== '') {
+        if ($response->failed() || ($errorTextIsFailure && SmartbillApiException::errorTextIn($response) !== '')) {
             throw SmartbillApiException::from($response);
         }
     }

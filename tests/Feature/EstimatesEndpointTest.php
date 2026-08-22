@@ -143,3 +143,27 @@ describe('delete', function () {
         smartbill()->estimates()->delete('test-cif', 'test-series', '123');
     })->throws(SmartbillApiException::class);
 });
+
+describe('getInvoices on an un-invoiced estimate', function () {
+    it('returns areInvoicesCreated instead of throwing', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response([
+                'errorText' => 'Proforma cu seria TP si numarul 0001 nu a fost facturata.',
+                'areInvoicesCreated' => false,
+            ], 200),
+        ]);
+
+        expect(smartbill()->estimates()->getInvoices('RO39521446', 'TP', '0001'))
+            ->toHaveKey('areInvoicesCreated', false);
+    });
+
+    it('still throws when the estimate does not exist', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response([
+                'errorText' => 'Proforma cu seria TP si numarul 9 nu a fost gasita.',
+            ], 410),
+        ]);
+
+        smartbill()->estimates()->getInvoices('RO39521446', 'TP', '9');
+    })->throws(SmartbillApiException::class);
+});
