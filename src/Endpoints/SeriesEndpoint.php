@@ -8,8 +8,8 @@ class SeriesEndpoint extends BaseEndpoint
      * Each series in the list carries nextNumber, the next number available.
      *
      * $type accepts only 'f' (invoice), 'p' (estimate) or 'c' (receipt); anything else
-     * is rejected with a 400. Aviz and fiscal receipt series are not listable at all,
-     * filtered or not, so those names have to come from the user.
+     * is rejected with a 400. Series for delivery notes (`aviz`) and fiscal receipts are
+     * not listable at all, filtered or not, so those names have to come from the user.
      *
      * @return array<string, mixed>
      */
