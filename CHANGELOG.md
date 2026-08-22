@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-08-22
+
+### Breaking
+- Endpoint methods now throw when the API answers a 2xx with a populated `errorText`.
+  Smartbill reports functional failures that way, so callers that read `errorText` out of
+  the returned array must catch `SmartbillApiException` instead
+- `SmartbillApiException::report()` is gone, replaced by `context()`. A `report()` that
+  returns anything but `false` makes Laravel skip its own reporting, which dropped the
+  stack trace and call site from the log entry
+- Exception messages are now the cause only: the help markup Smartbill adds for its own
+  interface is removed and HTML error pages no longer leak into the message. The
+  untouched body stays available through `getResponse()`
+
+### Added
+- `SmartbillRequestException` for `invalid_request_error` bodies, exposing `getParam()`,
+  `getErrorCode()` and `getErrors()` — the offending field is named exactly, including
+  inside lists (`products[0].quantity`)
+- `SmartbillRateLimitException`, raised on the 403 that reports the limit as well as on
+  429, with `getLimit()`, `getRemaining()` and `getResetAt()`
+- `SmartbillApiException::getErrorText()`, `getCooldown()` and `context()`
+
+### Fixed
+- Treat a non-zero `status.code` as a failure: `/document/send` reports through that
+  envelope and carries no `errorText`, so failures were returned as success
+- Return an array when the body is empty or JSON `null`, instead of raising a `TypeError`
+- Keep falsy optional query parameters — a `productCode` of `"0"` was silently dropped
+- `reverse()` no longer requires `issueDate`; the API treats it as optional
+- `getInvoices()` reports an un-invoiced estimate instead of throwing: that state arrives
+  as a 2xx with a populated `errorText`
+- Accept `int|string` for the payment id and `int|float|string` for the payment value,
+  since PHP renders `100.00` as `100` on a query string and Smartbill matches exactly
+
+### Changed
+- Raise PHPStan to level 6 and enforce 100% type coverage in CI, which was previously
+  claimed but never checked
+- Deprecate `invoices()->create()` and `estimates()->create()` in favour of `createV2()`:
+  `/invoice` and `/estimate` are absent from Smartbill's OpenAPI spec and answer without
+  `documentUrl`, `documentId` and `documentViewUrl`
+
 ## [1.4.0] - 2026-08-22
 
 ### Fixed
