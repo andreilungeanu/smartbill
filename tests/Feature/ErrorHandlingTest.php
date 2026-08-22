@@ -3,6 +3,7 @@
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRateLimitException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRequestException;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
 /**
@@ -109,5 +110,23 @@ describe('html bodies', function () {
         } catch (SmartbillApiException $e) {
             expect($e->getMessage())->toBe('Cantitate stoc insuficienta pentru produsul X.');
         }
+    });
+});
+
+describe('optional query parameters', function () {
+    it('keeps a falsy product code', function (): void {
+        fakeApi(['errorText' => '', 'list' => []], 200);
+
+        smartbill()->stocks()->list('RO39521446', '2026-08-22', productCode: '0');
+
+        Http::assertSent(fn (Request $request): bool => str_contains($request->url(), 'productCode=0'));
+    });
+
+    it('omits a null product code', function (): void {
+        fakeApi(['errorText' => '', 'list' => []], 200);
+
+        smartbill()->stocks()->list('RO39521446', '2026-08-22');
+
+        Http::assertSent(fn (Request $request): bool => ! str_contains($request->url(), 'productCode'));
     });
 });

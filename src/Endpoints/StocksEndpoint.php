@@ -14,15 +14,16 @@ class StocksEndpoint extends BaseEndpoint
             'date' => $date,
         ];
 
-        if ($warehouseName) {
+        // Compare against null, not truthiness: "0" is a valid product code.
+        if ($warehouseName !== null) {
             $data['warehouseName'] = $warehouseName;
         }
 
-        if ($productName) {
+        if ($productName !== null) {
             $data['productName'] = $productName;
         }
 
-        if ($productCode) {
+        if ($productCode !== null) {
             $data['productCode'] = $productCode;
         }
 
