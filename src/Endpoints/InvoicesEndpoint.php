@@ -5,6 +5,10 @@ namespace AndreiLungeanu\Smartbill\Endpoints;
 class InvoicesEndpoint extends BaseEndpoint
 {
     /**
+     * @deprecated Use createV2(). /invoice is undocumented in the SmartBill OpenAPI
+     *             spec and answers with a smaller envelope: no documentUrl,
+     *             documentId or documentViewUrl.
+     *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */

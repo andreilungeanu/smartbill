@@ -5,6 +5,9 @@ namespace AndreiLungeanu\Smartbill\Endpoints;
 class EstimatesEndpoint extends BaseEndpoint
 {
     /**
+     * @deprecated Use createV2(). /estimate is undocumented in the SmartBill OpenAPI
+     *             spec and answers with a smaller envelope.
+     *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
@@ -32,6 +35,9 @@ class EstimatesEndpoint extends BaseEndpoint
     }
 
     /**
+     * Check areInvoicesCreated in the response to learn whether the estimate has
+     * already been invoiced.
+     *
      * @return array<string, mixed>
      */
     public function getInvoices(string $cif, string $seriesName, string $number): array

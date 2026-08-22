@@ -7,3 +7,9 @@ parameters:
         - src
         - tests
     tmpDir: build/phpstan
+    ignoreErrors:
+        # A package must keep testing its deprecated API until the method is
+        # actually removed. Scoped to tests so src stays deprecation-clean.
+        -
+            identifier: method.deprecated
+            path: tests/Feature/*
