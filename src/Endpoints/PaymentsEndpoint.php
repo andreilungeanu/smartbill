@@ -16,9 +16,12 @@ class PaymentsEndpoint extends BaseEndpoint
     /**
      * The receipt text arrives in the message key, Base64 encoded.
      *
+     * The spec types this query parameter as an integer, but POST /payment hands the
+     * id back as a string, so both are accepted rather than forcing callers to cast.
+     *
      * @return array<string, mixed>
      */
-    public function getText(string $cif, int $id): array
+    public function getText(string $cif, int|string $id): array
     {
         return $this->decode($this->client->get('/payment/text', [
             'cif' => $cif,

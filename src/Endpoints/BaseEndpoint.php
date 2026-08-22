@@ -36,8 +36,9 @@ abstract class BaseEndpoint
     }
 
     /**
-     * For binary payloads. The PDF endpoints answer 502 with an HTML body when a
-     * parameter is missing, so only the status is meaningful here.
+     * For binary payloads. /invoice/pdf answers 502 with an nginx HTML body when a
+     * parameter is missing or the document is unknown, while /estimate/pdf answers a
+     * normal 400 with errorText. The status covers both.
      */
     protected function download(Response $response): string
     {
@@ -50,12 +51,20 @@ abstract class BaseEndpoint
      * A 2xx alone does not mean success: Smartbill reports functional failures with
      * HTTP 200 and a populated errorText. An empty errorText is the success signal.
      *
+     * /document/send carries no errorText at all — it reports through status.code,
+     * where 0 is success — so that is checked too.
+     *
      * Pass $errorTextIsFailure = false for the endpoints where a populated errorText
      * on a 2xx describes a normal state rather than a failure.
      */
     protected function guard(Response $response, bool $errorTextIsFailure = true): void
     {
-        if ($response->failed() || ($errorTextIsFailure && SmartbillApiException::errorTextIn($response) !== '')) {
+        $statusCode = SmartbillApiException::statusCodeIn($response);
+
+        if ($response->failed()
+            || ($errorTextIsFailure && SmartbillApiException::errorTextIn($response) !== '')
+            || ($statusCode !== null && $statusCode !== 0)
+        ) {
             throw SmartbillApiException::from($response);
         }
     }

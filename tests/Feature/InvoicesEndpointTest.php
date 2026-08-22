@@ -56,11 +56,18 @@ describe('getPdf', function () {
 describe('getPaymentStatus', function () {
     it('returns the payment status', function (): void {
         Http::fake([
-            'https://ws.smartbill.ro/SBORO/api/invoice/paymentstatus*' => Http::response(['status' => 'Paid']),
+            'https://ws.smartbill.ro/SBORO/api/invoice/paymentstatus*' => Http::response([
+                'errorText' => '',
+                'invoiceTotalAmount' => 121.0,
+                'paidAmount' => 121.0,
+                'unpaidAmount' => 0.0,
+                'paid' => true,
+            ]),
         ]);
 
         expect(smartbill()->invoices()->getPaymentStatus('test-cif', 'test-series', '123'))
-            ->toHaveKey('status', 'Paid');
+            ->toHaveKey('paid', true)
+            ->toHaveKey('unpaidAmount', 0.0);
     });
 
     it('throws when the request fails', function (): void {

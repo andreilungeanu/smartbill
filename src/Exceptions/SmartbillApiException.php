@@ -105,14 +105,31 @@ class SmartbillApiException extends Exception
      */
     protected function nestedStatusMessage(): string
     {
-        $body = $this->response->json();
+        $status = self::nestedStatus($this->response);
+
+        return is_string($status['message'] ?? null) ? trim($status['message']) : '';
+    }
+
+    /**
+     * The status.code of the /document/send envelope: 0 on success, 1 on error.
+     * Null when the response does not use that envelope.
+     */
+    public static function statusCodeIn(Response $response): ?int
+    {
+        $code = self::nestedStatus($response)['code'] ?? null;
+
+        return is_int($code) ? $code : null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function nestedStatus(Response $response): array
+    {
+        $body = $response->json();
         $status = is_array($body) ? ($body['status'] ?? null) : null;
 
-        if (is_array($status) && is_string($status['message'] ?? null)) {
-            return trim($status['message']);
-        }
-
-        return '';
+        return is_array($status) ? $status : [];
     }
 
     /**
