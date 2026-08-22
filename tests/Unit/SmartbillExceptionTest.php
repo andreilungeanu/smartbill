@@ -1,41 +1,133 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillRateLimitException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillRequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+function failing(mixed $body, int $status = 400, array $headers = []): Response
+{
+    Http::fake(['https://example.com/*' => Http::response($body, $status, $headers)]);
+
+    return Http::get('https://example.com/test');
+}
+
 describe('message', function () {
     it('uses errorText from JSON', function (): void {
-        Http::fake([
-            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-        ]);
-
-        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
+        $exception = new SmartbillApiException(failing(['errorText' => 'Invalid CIF']));
 
         expect($exception->getMessage())->toBe('Invalid CIF')
-            ->and($exception->getCode())->toBe(400);
+            ->and($exception->getCode())->toBe(400)
+            ->and($exception->getErrorText())->toBe('Invalid CIF');
     });
 
     it('falls back to the raw body', function (): void {
-        Http::fake([
-            'https://example.com/*' => Http::response('<p>Server exploded</p>', 500),
-        ]);
+        $exception = new SmartbillApiException(failing('Server exploded', 500));
 
-        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
-
-        expect($exception->getMessage())->toBe('<p>Server exploded</p>')
+        expect($exception->getMessage())->toBe('Server exploded')
             ->and($exception->getCode())->toBe(500);
     });
 
     it('uses the default when the body is empty', function (): void {
-        Http::fake([
-            'https://example.com/*' => Http::response('', 503),
-        ]);
+        expect((new SmartbillApiException(failing('', 503)))->getMessage())
+            ->toBe('Smartbill API error');
+    });
 
-        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
+    it('ignores an empty errorText, which means success', function (): void {
+        expect((new SmartbillApiException(failing(['errorText' => '', 'message' => 'x'])))->getMessage())
+            ->toBe('Smartbill API error');
+    });
 
-        expect($exception->getMessage())->toBe('Smartbill API error')
-            ->and($exception->getCode())->toBe(503);
+    it('keeps only the first sentence of an HTML errorText', function (): void {
+        $exception = new SmartbillApiException(failing([
+            'errorText' => 'Cantitate stoc insuficienta pentru produsul X.<b>FCT 1</b><div id="moreErrorDetails" style="display:none"><p>ajutor</p></div>',
+        ]));
+
+        expect($exception->getMessage())->toBe('Cantitate stoc insuficienta pentru produsul X.')
+            ->and($exception->getResponse()->body())->toContain('moreErrorDetails');
+    });
+
+    it('does not leak an HTML error page into the message', function (): void {
+        $exception = new SmartbillApiException(failing('<html><body><h1>HTTP 500</h1></body></html>', 500));
+
+        expect($exception->getMessage())->toBe('Smartbill API error');
+    });
+
+    it('reads the cooldown when present', function (): void {
+        expect((new SmartbillApiException(failing(['errorText' => 'Blocat', 'cooldown' => 600], 401)))->getCooldown())
+            ->toBe(600);
+    });
+});
+
+describe('from', function () {
+    it('picks the request exception for invalid_request_error', function (): void {
+        expect(SmartbillApiException::from(failing(['type' => 'invalid_request_error', 'errors' => []]))::class)
+            ->toBe(SmartbillRequestException::class);
+    });
+
+    it('picks the rate limit exception on 429', function (): void {
+        expect(SmartbillApiException::from(failing(['errorText' => ''], 429))::class)
+            ->toBe(SmartbillRateLimitException::class);
+    });
+
+    it('picks the base exception otherwise', function (): void {
+        expect(SmartbillApiException::from(failing(['errorText' => 'Seria nu a fost gasita!']))::class)
+            ->toBe(SmartbillApiException::class);
+    });
+});
+
+describe('invalid_request_error', function () {
+    it('names the offending field', function (): void {
+        $exception = new SmartbillRequestException(failing([
+            'status' => 400,
+            'type' => 'invalid_request_error',
+            'errors' => [['code' => 'json_mapping_error', 'message' => 'Unrecognized property: zzz.', 'param' => 'zzz']],
+        ]));
+
+        expect($exception->getMessage())->toBe('Unrecognized property: zzz. (zzz)')
+            ->and($exception->getParam())->toBe('zzz')
+            ->and($exception->getErrorCode())->toBe('json_mapping_error')
+            ->and($exception->getErrors())->toHaveCount(1);
+    });
+
+    it('names a field inside a list', function (): void {
+        $exception = new SmartbillRequestException(failing([
+            'type' => 'invalid_request_error',
+            'errors' => [['code' => 'json_mapping_error', 'message' => 'Could not map property.', 'param' => 'products[0].quantity']],
+        ]));
+
+        expect($exception->getParam())->toBe('products[0].quantity');
+    });
+
+    it('survives an empty errors list', function (): void {
+        $exception = new SmartbillRequestException(failing(['type' => 'invalid_request_error']));
+
+        expect($exception->getMessage())->toBe('Smartbill rejected the request')
+            ->and($exception->getParam())->toBeNull();
+    });
+});
+
+describe('rate limit', function () {
+    it('exposes the rate limit headers', function (): void {
+        $exception = new SmartbillRateLimitException(failing(['errorText' => ''], 429, [
+            'X-RateLimit-Limit' => '30',
+            'X-RateLimit-Remaining' => '0',
+            'X-RateLimit-Reset' => '1787384999',
+        ]));
+
+        expect($exception->getMessage())->toBe('Smartbill API rate limit exceeded')
+            ->and($exception->getLimit())->toBe(30)
+            ->and($exception->getRemaining())->toBe(0)
+            ->and($exception->getResetAt())->toBe(1787384999);
+    });
+
+    it('returns null when the headers are absent', function (): void {
+        $exception = new SmartbillRateLimitException(failing(['errorText' => ''], 429));
+
+        expect($exception->getLimit())->toBeNull()
+            ->and($exception->getResetAt())->toBeNull();
     });
 });
 
@@ -43,11 +135,7 @@ describe('report', function () {
     it('does not log on construct', function (): void {
         $spy = Log::spy();
 
-        Http::fake([
-            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-        ]);
-
-        new SmartbillApiException(Http::get('https://example.com/test'));
+        new SmartbillApiException(failing(['errorText' => 'Invalid CIF']));
 
         $spy->shouldNotHaveReceived('error');
     });
@@ -55,11 +143,7 @@ describe('report', function () {
     it('logs when report() is called', function (): void {
         $spy = Log::spy();
 
-        Http::fake([
-            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-        ]);
-
-        (new SmartbillApiException(Http::get('https://example.com/test')))->report();
+        (new SmartbillApiException(failing(['errorText' => 'Invalid CIF'])))->report();
 
         $spy->shouldHaveReceived('error', [
             'Smartbill API Error',
