@@ -1282,7 +1282,7 @@ In Postman, cand se apeleaza acest webservice, trebuie selectat **Send and Downl
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{invoiceSeriesName}}
+- `seriesname`: {{invoiceSeriesName}}
 - `number`: 0025
 
 ---
@@ -1303,7 +1303,7 @@ Ca raspuns, se va primi:
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{invoiceSeriesName}}
+- `seriesname`: {{invoiceSeriesName}}
 - `number`: 0025
 
 ---
@@ -1336,7 +1336,7 @@ Aceasta metoda poate fi apelata pentru orice factura care a fost deja emisa si p
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{invoiceSeriesName}}
+- `seriesname`: {{invoiceSeriesName}}
 - `number`: 2205
 
 ---
@@ -1351,7 +1351,7 @@ Aceasta metoda trebuie apelata cand se doreste restaurarea unei facturi anulate.
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{invoiceSeriesName}}
+- `seriesname`: {{invoiceSeriesName}}
 - `number`: 2205
 
 ---
@@ -1368,7 +1368,7 @@ Aceasta metoda trebuie apelata cand se doreste stergerea unei facturi.
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{invoiceSeriesName}}
+- `seriesname`: {{invoiceSeriesName}}
 - `number`: 2206
 
 ---
@@ -2334,7 +2334,7 @@ In Postman, cand se apeleaza acest webservice, trebuie selectat **Send and Downl
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{estimateSeriesName}}
+- `seriesname`: {{estimateSeriesName}}
 - `number`: 0023
 
 ---
@@ -2349,7 +2349,7 @@ Aceasta metoda trebuie apelata cand e necesar sa se afle daca o proforma a fost 
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{estimateSeriesName}}
+- `seriesname`: {{estimateSeriesName}}
 - `number`: 0023
 
 ---
@@ -2364,7 +2364,7 @@ Aceasta metoda poate fi apelata pentru orice proforma care a fost deja emisa si 
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{estimateSeriesName}}
+- `seriesname`: {{estimateSeriesName}}
 - `number`: 0023
 
 ---
@@ -2379,7 +2379,7 @@ Aceasta metoda trebuie apelata cand se doreste restaurarea unei proforme anulate
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{estimateSeriesName}}
+- `seriesname`: {{estimateSeriesName}}
 - `number`: 0023
 
 ---
@@ -2396,7 +2396,7 @@ Aceasta metoda trebuie apelata cand se doreste stergerea unei proforme.
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{estimateSeriesName}}
+- `seriesname`: {{estimateSeriesName}}
 - `number`: 0023
 
 ---
@@ -3021,7 +3021,7 @@ Metoda permite stergerea unei incasari tip chitanta, cu precizarea ca doar ultim
 **Query Parameters:**
 
 - `cif`: {{vatCode}}
-- `seriesName`: {{paymentSeries}}
+- `seriesname`: {{paymentSeries}}
 - `number`: 0009
 
 ---
