@@ -5,17 +5,23 @@ use Illuminate\Support\Facades\Http;
 
 it('lists stocks', function (): void {
     Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/stocks?cif=test&date=2025-06-14' => Http::response(['stocks' => [['name' => 'Product 1']]]),
+        'https://ws.smartbill.ro/SBORO/api/stocks*' => Http::response([
+            'errorText' => '',
+            'list' => [[
+                'warehouse' => ['warehouseName' => 'Depozit', 'warehouseType' => 'Marfa'],
+                'products' => [['productName' => 'Product 1', 'productCode' => 'P1', 'quantity' => 5]],
+            ]],
+        ]),
     ]);
 
-    expect(smartbill()->stocks()->list('test', '2025-06-14')['stocks'][0])
-        ->toHaveKey('name', 'Product 1');
+    expect(smartbill()->stocks()->list('test', '2025-06-14')['list'][0]['products'][0])
+        ->toHaveKey('productName', 'Product 1');
 });
 
 it('throws when the request fails', function (): void {
     Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/stocks?cif=test&date=2025-06-14' => Http::response(['error' => 'Error'], 500),
+        'https://ws.smartbill.ro/SBORO/api/stocks*' => Http::response(['errorText' => 'Gestiunea nu a fost gasita pe server.'], 400),
     ]);
 
     smartbill()->stocks()->list('test', '2025-06-14');
-})->throws(SmartbillApiException::class);
+})->throws(SmartbillApiException::class, 'Gestiunea nu a fost gasita pe server.');

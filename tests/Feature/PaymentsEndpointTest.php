@@ -24,18 +24,23 @@ describe('create', function () {
 });
 
 describe('getText', function () {
-    it('returns the fiscal receipt text', function (): void {
+    it('returns the fiscal receipt text Base64 encoded in message', function (): void {
         Http::fake([
-            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['text' => 'base64']),
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response([
+                'errorText' => '',
+                'message' => base64_encode('BON FISCAL'),
+            ]),
         ]);
 
-        expect(smartbill()->payments()->getText('cif', 1384))
-            ->toHaveKey('text', 'base64');
+        $response = smartbill()->payments()->getText('cif', 1384);
+
+        // The package hands the value over untouched; decoding is the caller's job.
+        expect(base64_decode($response['message']))->toBe('BON FISCAL');
     });
 
     it('throws when the request fails', function (): void {
         Http::fake([
-            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['error' => 'Error'], 500),
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response('<html><body>Error report</body></html>', 500),
         ]);
 
         smartbill()->payments()->getText('cif', 1384);
