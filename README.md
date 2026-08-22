@@ -199,6 +199,38 @@ Smartbill sometimes wraps it in HTML meant for its own interface, and that is st
 Exceeding the rate limit (30 calls per 10 seconds per token) throws
 `SmartbillRateLimitException` and locks the token for ten minutes. Do not retry it.
 
+## Known Issues
+
+### ~~Internal Server Errors on Invalid Request Data~~ &mdash; fixed by Smartbill
+
+> **Resolved.** This issue was found and reported from this package. Re-tested against the
+> live API on 2026-08-22 and confirmed fixed: a misspelled field now returns `400` with
+> `errors[].param` naming it &mdash; precisely the behaviour asked for below. The original
+> report is kept struck through for the record. See [Error handling](#error-handling) for
+> how the package surfaces it today.
+
+~~When working with the Smartbill API, there are a few known issues to be aware of:~~
+
+1.  ~~**Internal Server Errors on Invalid Request Data**:~~
+    ~~The API may return a `500 Internal Server Error` when the request payload contains invalid data, such as a typo in a required field name.~~
+
+    ~~For example, sending `nume` instead of `name` in the client object will trigger a `500` error:~~
+    ```php
+    $invoiceData = [
+        "companyVatCode" => "YOUR_COMPANY_VAT_CODE",
+        "client" => [
+          "nume" => "Test Client SRL", // Incorrect: should be "name"
+          "vatCode" => "12345678",
+          // ...
+        ],
+        // ...
+    ];
+    ```
+
+    ~~Ideally, the API should respond with a `400 Bad Request` status and a helpful error message detailing which field is incorrect. Instead, it returns a generic `500` error, which makes debugging difficult as it incorrectly suggests a server-side failure rather than a client-side mistake.~~
+
+~~While this package attempts to mitigate these issues where possible, the fundamental problems lie with the API's implementation. We are awaiting fixes from the Smartbill provider to ensure more reliable and standards-compliant behavior.~~
+
 ## Testing
 
 ```bash
