@@ -29,7 +29,7 @@ describe('getText', function () {
             'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['text' => 'base64']),
         ]);
 
-        expect(smartbill()->payments()->getText('cif', '1384'))
+        expect(smartbill()->payments()->getText('cif', 1384))
             ->toHaveKey('text', 'base64');
     });
 
@@ -38,7 +38,7 @@ describe('getText', function () {
             'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['error' => 'Error'], 500),
         ]);
 
-        smartbill()->payments()->getText('cif', '1384');
+        smartbill()->payments()->getText('cif', 1384);
     })->throws(SmartbillApiException::class);
 });
 

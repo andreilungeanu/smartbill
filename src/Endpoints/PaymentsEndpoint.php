@@ -14,9 +14,11 @@ class PaymentsEndpoint extends BaseEndpoint
     }
 
     /**
+     * The receipt text arrives in the message key, Base64 encoded.
+     *
      * @return array<string, mixed>
      */
-    public function getText(string $cif, string $id): array
+    public function getText(string $cif, int $id): array
     {
         return $this->decode($this->client->get('/payment/text', [
             'cif' => $cif,
