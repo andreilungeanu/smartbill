@@ -8,7 +8,7 @@ it('lists stocks', function (): void {
         'https://ws.smartbill.ro/SBORO/api/stocks*' => Http::response([
             'errorText' => '',
             'list' => [[
-                'warehouse' => ['warehouseName' => 'Depozit', 'warehouseType' => 'Marfa'],
+                'warehouse' => ['warehouseName' => 'Depozit', 'warehouseType' => 'en gros'],
                 'products' => [['productName' => 'Product 1', 'productCode' => 'P1', 'quantity' => 5]],
             ]],
         ]),

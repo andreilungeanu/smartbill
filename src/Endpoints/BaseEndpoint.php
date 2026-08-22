@@ -61,7 +61,7 @@ abstract class BaseEndpoint
     {
         $statusCode = SmartbillApiException::statusCodeIn($response);
 
-        if ($response->failed()
+        if (! $response->successful()
             || ($errorTextIsFailure && SmartbillApiException::errorTextIn($response) !== '')
             || ($statusCode !== null && $statusCode !== 0)
         ) {

@@ -46,11 +46,18 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function getInvoices(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->client->get('/estimate/invoices', [
+        $response = $this->client->get('/estimate/invoices', [
             'cif' => $cif,
             'seriesname' => $seriesName,
             'number' => $number,
-        ]), errorTextIsFailure: false);
+        ]);
+
+        // Suppress errorText only alongside areInvoicesCreated, which marks the known
+        // state. Any other populated errorText on a 2xx is still a real failure.
+        $body = $response->json();
+        $known = is_array($body) && array_key_exists('areInvoicesCreated', $body);
+
+        return $this->decode($response, errorTextIsFailure: ! $known);
     }
 
     /**

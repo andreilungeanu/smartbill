@@ -101,14 +101,14 @@ describe('html bodies', function () {
         }
     });
 
-    it('keeps only the cause from an HTML errorText', function (): void {
-        fakeApi(['errorText' => 'Cantitate stoc insuficienta pentru produsul X.<b>FCT 1</b><div id="moreErrorDetails"><p>ajutor</p></div>'], 400);
+    it('keeps the inline detail but drops the help markup', function (): void {
+        fakeApi(['errorText' => 'Cantitate stoc insuficienta la <b>FCT 1</b> pentru produsul <b>Mere</b>.<div id="moreErrorDetails"><p>ajutor</p></div>'], 400);
 
         try {
             smartbill()->invoices()->createV2([]);
             $this->fail('expected SmartbillApiException');
         } catch (SmartbillApiException $e) {
-            expect($e->getMessage())->toBe('Cantitate stoc insuficienta pentru produsul X.');
+            expect($e->getMessage())->toBe('Cantitate stoc insuficienta la FCT 1 pentru produsul Mere.');
         }
     });
 });

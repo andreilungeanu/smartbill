@@ -4,7 +4,7 @@ namespace AndreiLungeanu\Smartbill\Exceptions;
 
 use Exception;
 use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SmartbillApiException extends Exception
 {
@@ -72,12 +72,22 @@ class SmartbillApiException extends Exception
         return $this->response;
     }
 
-    public function report(): void
+    /**
+     * Attached to the framework's own log entry rather than replacing it: a report()
+     * returning anything but false makes Laravel skip its default reporting, which
+     * would drop the stack trace and the call site. Caught exceptions stay silent
+     * either way, since context() is only read when the exception is reported.
+     *
+     * The body is truncated — Smartbill error bodies can carry client and document data.
+     *
+     * @return array<string, mixed>
+     */
+    public function context(): array
     {
-        Log::error('Smartbill API Error', [
-            'status' => $this->response->status(),
-            'body' => strip_tags($this->response->body()),
-        ]);
+        return [
+            'smartbill_status' => $this->response->status(),
+            'smartbill_body' => Str::limit(strip_tags($this->response->body()), 500),
+        ];
     }
 
     protected function resolveMessage(): string
@@ -94,7 +104,7 @@ class SmartbillApiException extends Exception
             $text = $this->response->body();
         }
 
-        return self::firstSentence($text) ?: 'Smartbill API error';
+        return self::sanitize($text) ?: 'Smartbill API error';
     }
 
     /**
@@ -105,6 +115,12 @@ class SmartbillApiException extends Exception
      */
     protected function nestedStatusMessage(): string
     {
+        // Only when the envelope says it failed: a message sitting next to code 0 is a
+        // success notice and would read as the cause of an error it did not describe.
+        if (self::statusCodeIn($this->response) === 0) {
+            return '';
+        }
+
         $status = self::nestedStatus($this->response);
 
         return is_string($status['message'] ?? null) ? trim($status['message']) : '';
@@ -133,15 +149,27 @@ class SmartbillApiException extends Exception
     }
 
     /**
-     * errorText may carry HTML aimed at the Smartbill Cloud UI: <b> around document
-     * names, a hidden <div id="moreErrorDetails"> of help text. The cause is the
-     * first sentence, before the first tag; the rest is markup for their interface.
-     * The untouched body stays reachable through getResponse().
+     * errorText may carry HTML aimed at the Smartbill Cloud UI. Two kinds appear, and
+     * they need opposite treatment:
+     *
+     *  - help markup appended after the cause: a `<br/>` followed by a suggestion, or a
+     *    hidden `<div id="moreErrorDetails">` block. Both are dropped.
+     *  - `<b>` wrapped *inside* the sentence, around the document, date or product name.
+     *    Truncating at the first tag would throw the cause away, so tags are stripped
+     *    and their contents kept.
+     *
+     * A response body that is an HTML page rather than a message yields nothing.
+     * The untouched body always stays reachable through getResponse().
      */
-    protected static function firstSentence(string $text): string
+    protected static function sanitize(string $text): string
     {
-        $cut = strpos($text, '<');
+        if (preg_match('#^\s*<(!doctype|html)#i', $text) === 1) {
+            return '';
+        }
 
-        return trim($cut === false ? $text : substr($text, 0, $cut));
+        $text = (string) preg_replace('#<div[^>]*id="moreErrorDetails".*#is', '', $text);
+        $text = (string) preg_replace('#<br\s*/?>.*#is', '', $text);
+
+        return trim((string) preg_replace('/\s+/', ' ', strip_tags($text)));
     }
 }

@@ -43,13 +43,33 @@ describe('message', function () {
             ->toBe('Smartbill API error');
     });
 
-    it('keeps only the first sentence of an HTML errorText', function (): void {
+    it('keeps the cause when <b> sits inside the sentence', function (): void {
+        // The real Smartbill message wraps the document and product in <b>. Cutting at
+        // the first tag would leave only "Cantitate stoc insuficienta la".
         $exception = new SmartbillApiException(failing([
-            'errorText' => 'Cantitate stoc insuficienta pentru produsul X.<b>FCT 1</b><div id="moreErrorDetails" style="display:none"><p>ajutor</p></div>',
+            'errorText' => 'Cantitate stoc insuficienta la <b>FCT 123 / 22.08.2026</b> pentru produsul <b>Mere Golden</b>.',
         ]));
 
-        expect($exception->getMessage())->toBe('Cantitate stoc insuficienta pentru produsul X.')
+        expect($exception->getMessage())
+            ->toBe('Cantitate stoc insuficienta la FCT 123 / 22.08.2026 pentru produsul Mere Golden.');
+    });
+
+    it('drops the hidden help block but keeps the cause', function (): void {
+        $exception = new SmartbillApiException(failing([
+            'errorText' => 'Unitatea de masura <b>buc</b> a produsului <b>X</b> nu are factor de conversie setat.<div id="moreErrorDetails" style="display:none"><p>ajutor</p></div>',
+        ]));
+
+        expect($exception->getMessage())
+            ->toBe('Unitatea de masura buc a produsului X nu are factor de conversie setat.')
             ->and($exception->getResponse()->body())->toContain('moreErrorDetails');
+    });
+
+    it('drops the suggestion appended after a line break', function (): void {
+        $exception = new SmartbillApiException(failing([
+            'errorText' => 'Nu ai facut nicio achizitie pentru produsul Mere.<br/>Verifica gestiunea.',
+        ]));
+
+        expect($exception->getMessage())->toBe('Nu ai facut nicio achizitie pentru produsul Mere.');
     });
 
     it('does not leak an HTML error page into the message', function (): void {
@@ -159,7 +179,7 @@ describe('rate limit', function () {
     });
 });
 
-describe('report', function () {
+describe('context', function () {
     it('does not log on construct', function (): void {
         $spy = Log::spy();
 
@@ -168,16 +188,22 @@ describe('report', function () {
         $spy->shouldNotHaveReceived('error');
     });
 
-    it('logs when report() is called', function (): void {
-        $spy = Log::spy();
+    it('exposes the status and body for the framework log entry', function (): void {
+        $exception = new SmartbillApiException(failing(['errorText' => 'Invalid CIF']));
 
-        (new SmartbillApiException(failing(['errorText' => 'Invalid CIF'])))->report();
+        expect($exception->context())
+            ->toHaveKey('smartbill_status', 400)
+            ->and($exception->context()['smartbill_body'])->toContain('Invalid CIF');
+    });
 
-        $spy->shouldHaveReceived('error', [
-            'Smartbill API Error',
-            Mockery::on(fn (array $ctx): bool => $ctx['status'] === 400
-                && str_contains($ctx['body'], 'Invalid CIF')
-            ),
-        ]);
+    it('truncates a long body', function (): void {
+        $exception = new SmartbillApiException(failing(str_repeat('x', 2000), 500));
+
+        expect(strlen((string) $exception->context()['smartbill_body']))->toBeLessThan(600);
+    });
+
+    it('does not define report(), so Laravel still logs the trace', function (): void {
+        // A report() returning anything but false makes Laravel skip its own reporting.
+        expect(method_exists(SmartbillApiException::class, 'report'))->toBeFalse();
     });
 });
