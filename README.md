@@ -3,7 +3,7 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/andreilungeanu/smartbill.svg?style=flat-square)](https://packagist.org/packages/andreilungeanu/smartbill)
 [![Total Downloads](https://img.shields.io/packagist/dt/andreilungeanu/smartbill.svg?style=flat-square)](https://packagist.org/packages/andreilungeanu/smartbill)
 
-A Laravel package for the Smartbill API, offering full compatibility with Laravel versions 11, 12, and 13.
+A Laravel package for the Smartbill API, tested against Laravel 12 and 13. Laravel 11 is still installable but no longer covered by CI — its security window closed in March 2026.
 
 ## Installation
 

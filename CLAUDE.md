@@ -1,6 +1,6 @@
 # Smartbill
 
-Laravel package wrapping the Smartbill.ro REST API. Runtime target is **PHP 8.2** — avoid 8.3+ syntax in `src/` so Laravel 11/12 consumers still work. Tests are Pest 5 (PHP 8.4+, PHPUnit 13); CI runs 8.4/8.5. Laravel 11 is excluded on PHP 8.5.
+Laravel package wrapping the Smartbill.ro REST API. Runtime target is **PHP 8.2** — avoid 8.3+ syntax in `src/` so Laravel 11/12 consumers still work. Tests are Pest 5 (PHP 8.4+, PHPUnit 13); CI runs 8.4/8.5 against Laravel 12 on Pest 4 and Laravel 13 on Pest 5. Laravel 11 is still installable but no longer tested — its security window closed in March 2026.
 
 ## Commands
 
