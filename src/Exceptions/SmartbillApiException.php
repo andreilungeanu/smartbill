@@ -18,7 +18,7 @@ class SmartbillApiException extends Exception
      */
     public static function from(Response $response): self
     {
-        if ($response->status() === 429) {
+        if (SmartbillRateLimitException::matches($response)) {
             return new SmartbillRateLimitException($response);
         }
 

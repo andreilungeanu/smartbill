@@ -75,6 +75,20 @@ describe('from', function () {
             ->toBe(SmartbillRateLimitException::class);
     });
 
+    it('picks the rate limit exception on the 403 that names the limit', function (): void {
+        $body = ['errorText' => 'Ai depasit limita maxima de requesturi admisa. Vei putea executa alte requesturi dupa 10 min de la momentul blocarii 22/08/2026 11:40:35'];
+
+        expect(SmartbillApiException::from(failing($body, 403))::class)
+            ->toBe(SmartbillRateLimitException::class);
+    });
+
+    it('leaves an ordinary 403 alone', function (): void {
+        $body = ['errorText' => 'Factura nu este ultima din serie si nu poate fi stearsa.'];
+
+        expect(SmartbillApiException::from(failing($body, 403))::class)
+            ->toBe(SmartbillApiException::class);
+    });
+
     it('picks the base exception otherwise', function (): void {
         expect(SmartbillApiException::from(failing(['errorText' => 'Seria nu a fost gasita!']))::class)
             ->toBe(SmartbillApiException::class);
@@ -131,6 +145,17 @@ describe('rate limit', function () {
 
         expect($exception->getLimit())->toBeNull()
             ->and($exception->getResetAt())->toBeNull();
+    });
+
+    it('keeps the blocking message and reports no window', function (): void {
+        // The live blocking response carries no X-RateLimit headers at all.
+        $exception = new SmartbillRateLimitException(failing([
+            'errorText' => 'Ai depasit limita maxima de requesturi admisa. Vei putea executa alte requesturi dupa 10 min de la momentul blocarii 22/08/2026 11:40:35',
+        ], 403));
+
+        expect($exception->getMessage())->toContain('limita maxima de requesturi')
+            ->and($exception->getCode())->toBe(403)
+            ->and($exception->getRemaining())->toBeNull();
     });
 });
 
