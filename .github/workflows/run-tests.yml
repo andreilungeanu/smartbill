@@ -17,22 +17,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         php: [8.5, 8.4]
-        laravel: [11.*, 12.*, 13.*]
+        laravel: [12.*, 13.*]
         stability: [prefer-lowest, prefer-stable]
         include:
-          - laravel: 11.*
-            testbench: 9.*
           - laravel: 12.*
-            testbench: 10.*
+            testbench: ^10.6
+            pest: 4
           - laravel: 13.*
             testbench: 11.*
-        exclude:
-          - php: 8.5
-            laravel: 11.*
+            pest: 5
 
     name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
@@ -51,6 +48,15 @@ jobs:
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      # Pest 5 requires PHPUnit 13, which pulls symfony/process 8. Testbench 10 pins
+      # symfony/process ^7.2, so Laravel 12 can only be tested on Pest 4. The suite
+      # itself is version-agnostic and passes unchanged on both.
+      - name: Pin Pest 4 for Laravel 12
+        if: matrix.pest == 4
+        run: |
+          composer remove --dev pestphp/pest-plugin-phpstan --no-update
+          composer require --dev "pestphp/pest:^4.0" "pestphp/pest-plugin-type-coverage:^4.0" --no-interaction --no-update
 
       - name: Install dependencies
         run: |
