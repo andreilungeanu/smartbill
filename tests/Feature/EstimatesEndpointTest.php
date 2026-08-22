@@ -1,149 +1,145 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
-it('can create an estimate', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate' => Http::response(['number' => '123']),
-    ]);
+describe('create', function () {
+    it('returns the estimate number', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate' => Http::response(['number' => '123']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->create(['client' => ['name' => 'Test Client']]))
+            ->toHaveKey('number', '123');
+    });
 
-    $response = $smartbill->estimates()->create(['client' => ['name' => 'Test Client']]);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    expect($response['number'])->toBe('123');
+        smartbill()->estimates()->create(['client' => ['name' => 'Test Client']]);
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the create estimate request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('createV2', function () {
+    it('returns the series', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/v2' => Http::response(['series' => 'TESTV2']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $smartbill->estimates()->create(['client' => ['name' => 'Test Client']]);
-})->throws(SmartbillApiException::class);
-
-it('can create a v2 estimate', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/v2' => Http::response(['series' => 'TESTV2']),
-    ]);
-
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->estimates()->createV2(['value' => 100]);
-
-    expect($response['series'])->toBe('TESTV2');
+        expect(smartbill()->estimates()->createV2(['value' => 100]))
+            ->toHaveKey('series', 'TESTV2');
+    });
 });
 
-it('can get an estimate pdf', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response('PDF Content'),
-    ]);
+describe('getPdf', function () {
+    it('returns the PDF body', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response('PDF Content'),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->getPdf('test-cif', 'test-series', '123'))
+            ->toBe('PDF Content');
+    });
 
-    $response = $smartbill->estimates()->getPdf('test-cif', 'test-series', '123');
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    expect($response)->toBe('PDF Content');
+        smartbill()->estimates()->getPdf('test-cif', 'test-series', '123');
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the get estimate pdf request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('getInvoices', function () {
+    it('returns invoices issued from the estimate', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response(['invoices' => [['number' => 'INV-001']]]),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->getInvoices('test-cif', 'test-series', '123')['invoices'][0])
+            ->toHaveKey('number', 'INV-001');
+    });
 
-    $smartbill->estimates()->getPdf('test-cif', 'test-series', '123');
-})->throws(SmartbillApiException::class);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-it('can get estimate invoices', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response(['invoices' => [['number' => 'INV-001']]]),
-    ]);
-
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->estimates()->getInvoices('test-cif', 'test-series', '123');
-
-    expect($response['invoices'][0]['number'])->toBe('INV-001');
+        smartbill()->estimates()->getInvoices('test-cif', 'test-series', '123');
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the get estimate invoices request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/invoices*' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('cancel', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/cancel*' => Http::response(['message' => 'Success']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->cancel('test-cif', 'test-series', '123'))
+            ->toHaveKey('message', 'Success');
 
-    $smartbill->estimates()->getInvoices('test-cif', 'test-series', '123');
-})->throws(SmartbillApiException::class);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT'
+            && str_contains($request->url(), '/estimate/cancel')
+            && str_contains($request->url(), 'cif=test-cif')
+        );
+    });
 
-it('can cancel an estimate', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/cancel' => Http::response(['message' => 'Success']),
-    ]);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/cancel*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->estimates()->cancel('test-cif', 'test-series', '123');
-
-    expect($response['message'])->toBe('Success');
+        smartbill()->estimates()->cancel('test-cif', 'test-series', '123');
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the cancel estimate request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/cancel' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('restore', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/restore*' => Http::response(['message' => 'Success']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->restore('test-cif', 'test-series', '123'))
+            ->toHaveKey('message', 'Success');
 
-    $smartbill->estimates()->cancel('test-cif', 'test-series', '123');
-})->throws(SmartbillApiException::class);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'PUT'
+            && str_contains($request->url(), '/estimate/restore')
+            && str_contains($request->url(), 'cif=test-cif')
+        );
+    });
 
-it('can restore an estimate', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/restore' => Http::response(['message' => 'Success']),
-    ]);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate/restore*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->estimates()->restore('test-cif', 'test-series', '123');
-
-    expect($response['message'])->toBe('Success');
+        smartbill()->estimates()->restore('test-cif', 'test-series', '123');
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the restore estimate request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate/restore' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('delete', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate*' => Http::response(['message' => 'Success']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->estimates()->delete('test-cif', 'test-series', '123'))
+            ->toHaveKey('message', 'Success');
 
-    $smartbill->estimates()->restore('test-cif', 'test-series', '123');
-})->throws(SmartbillApiException::class);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'DELETE'
+            && str_contains($request->url(), '/estimate')
+            && str_contains($request->url(), 'cif=test-cif')
+        );
+    });
 
-it('can delete an estimate', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate*' => Http::response(['message' => 'Success']),
-    ]);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/estimate*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->estimates()->delete('test-cif', 'test-series', '123');
-
-    expect($response['message'])->toBe('Success');
+        smartbill()->estimates()->delete('test-cif', 'test-series', '123');
+    })->throws(SmartbillApiException::class);
 });
-
-it('throws an exception when the delete estimate request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/estimate*' => Http::response(['error' => 'Error'], 500),
-    ]);
-
-    $smartbill = app(Smartbill::class);
-
-    $smartbill->estimates()->delete('test-cif', 'test-series', '123');
-})->throws(SmartbillApiException::class);

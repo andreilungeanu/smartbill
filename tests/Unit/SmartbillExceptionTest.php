@@ -1,77 +1,71 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-it('builds from a Response with errorText JSON', function () {
-    Http::fake([
-        'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-    ]);
+describe('message', function () {
+    it('uses errorText from JSON', function (): void {
+        Http::fake([
+            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
+        ]);
 
-    $response = Http::get('https://example.com/test');
+        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
 
-    $exception = new SmartbillApiException($response);
+        expect($exception->getMessage())->toBe('Invalid CIF')
+            ->and($exception->getCode())->toBe(400);
+    });
 
-    expect($exception->getMessage())->toBe('Invalid CIF');
-    expect($exception->getCode())->toBe(400);
-    expect($exception->getResponse())->toBeInstanceOf(Response::class);
+    it('falls back to the raw body', function (): void {
+        Http::fake([
+            'https://example.com/*' => Http::response('<p>Server exploded</p>', 500),
+        ]);
+
+        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
+
+        expect($exception->getMessage())->toBe('<p>Server exploded</p>')
+            ->and($exception->getCode())->toBe(500);
+    });
+
+    it('uses the default when the body is empty', function (): void {
+        Http::fake([
+            'https://example.com/*' => Http::response('', 503),
+        ]);
+
+        $exception = new SmartbillApiException(Http::get('https://example.com/test'));
+
+        expect($exception->getMessage())->toBe('Smartbill API error')
+            ->and($exception->getCode())->toBe(503);
+    });
 });
 
-it('falls back to raw body when no errorText key', function () {
-    Http::fake([
-        'https://example.com/*' => Http::response('<p>Server exploded</p>', 500),
-    ]);
+describe('report', function () {
+    it('does not log on construct', function (): void {
+        $spy = Log::spy();
 
-    $response = Http::get('https://example.com/test');
+        Http::fake([
+            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
+        ]);
 
-    $exception = new SmartbillApiException($response);
+        new SmartbillApiException(Http::get('https://example.com/test'));
 
-    expect($exception->getMessage())->toBe('<p>Server exploded</p>');
-    expect($exception->getCode())->toBe(500);
-});
+        $spy->shouldNotHaveReceived('error');
+    });
 
-it('uses default message when body is empty', function () {
-    Http::fake([
-        'https://example.com/*' => Http::response('', 503),
-    ]);
+    it('logs when report() is called', function (): void {
+        $spy = Log::spy();
 
-    $response = Http::get('https://example.com/test');
+        Http::fake([
+            'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
+        ]);
 
-    $exception = new SmartbillApiException($response);
+        (new SmartbillApiException(Http::get('https://example.com/test')))->report();
 
-    expect($exception->getMessage())->toBe('Smartbill API error');
-    expect($exception->getCode())->toBe(503);
-});
-
-it('does not log when the exception is constructed', function () {
-    $spy = Log::spy();
-
-    Http::fake([
-        'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-    ]);
-    $response = Http::get('https://example.com/test');
-
-    new SmartbillApiException($response);
-
-    $spy->shouldNotHaveReceived('error');
-});
-
-it('logs when report() is called on the exception', function () {
-    $spy = Log::spy();
-
-    Http::fake([
-        'https://example.com/*' => Http::response(['errorText' => 'Invalid CIF'], 400),
-    ]);
-    $response = Http::get('https://example.com/test');
-
-    (new SmartbillApiException($response))->report();
-
-    $spy->shouldHaveReceived('error', [
-        'Smartbill API Error',
-        Mockery::on(fn (array $ctx): bool => $ctx['status'] === 400
-            && str_contains($ctx['body'], 'Invalid CIF')
-        ),
-    ]);
+        $spy->shouldHaveReceived('error', [
+            'Smartbill API Error',
+            Mockery::on(fn (array $ctx): bool => $ctx['status'] === 400
+                && str_contains($ctx['body'], 'Invalid CIF')
+            ),
+        ]);
+    });
 });

@@ -1,45 +1,39 @@
 <?php
 
-use AndreiLungeanu\Smartbill\Endpoints\DocumentEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\EstimatesEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\InvoicesEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\PaymentsEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\SeriesEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\StocksEndpoint;
-use AndreiLungeanu\Smartbill\Endpoints\TaxesEndpoint;
 use AndreiLungeanu\Smartbill\Smartbill;
 
-it('returns the correct endpoint instance', function (string $method, string $expectedClass) {
-    $endpoint = app(Smartbill::class)->{$method}();
+it('returns the matching endpoint', function (string $method, string $expectedClass): void {
+    expect(smartbill()->{$method}())->toBeInstanceOf($expectedClass);
+})->with('endpoints');
 
-    expect($endpoint)->toBeInstanceOf($expectedClass);
-})->with([
-    'invoices' => ['invoices', InvoicesEndpoint::class],
-    'estimates' => ['estimates', EstimatesEndpoint::class],
-    'payments' => ['payments', PaymentsEndpoint::class],
-    'taxes' => ['taxes', TaxesEndpoint::class],
-    'series' => ['series', SeriesEndpoint::class],
-    'stocks' => ['stocks', StocksEndpoint::class],
-    'document' => ['document', DocumentEndpoint::class],
-]);
+describe('timeout', function () {
+    it('applies the configured value to the HTTP client', function (): void {
+        config()->set('smartbill.timeout', 7);
+        app()->forgetInstance(Smartbill::class);
 
-it('applies the configured timeout to the underlying HTTP client', function () {
-    config()->set('smartbill.timeout', 7);
-    app()->forgetInstance(Smartbill::class);
+        $client = (new ReflectionClass(smartbill()))->getProperty('client')->getValue(smartbill());
+        $options = (new ReflectionClass($client))->getProperty('options')->getValue($client);
 
-    $smartbill = app(Smartbill::class);
+        expect($options)->toMatchArray(['timeout' => 7]);
+    });
 
-    $reflection = new ReflectionClass($smartbill);
-    $clientProperty = $reflection->getProperty('client');
-    $clientProperty->setAccessible(true);
-    $client = $clientProperty->getValue($smartbill);
-
-    $optionsProperty = (new ReflectionClass($client))->getProperty('options');
-    $optionsProperty->setAccessible(true);
-
-    expect($optionsProperty->getValue($client))->toMatchArray(['timeout' => 7]);
+    it('defaults to 30 seconds', function (): void {
+        expect(config('smartbill.timeout'))->toBe(30);
+    });
 });
 
-it('defaults the timeout to 30 seconds when no config is set', function () {
-    expect(config('smartbill.timeout'))->toBe(30);
+describe('credentials', function () {
+    it('throws when the username is missing', function (): void {
+        config()->set('smartbill.api_username', '');
+        app()->forgetInstance(Smartbill::class);
+
+        smartbill();
+    })->throws(InvalidArgumentException::class, 'Smartbill API Username is not configured');
+
+    it('throws when the token is missing', function (): void {
+        config()->set('smartbill.api_token', '');
+        app()->forgetInstance(Smartbill::class);
+
+        smartbill();
+    })->throws(InvalidArgumentException::class, 'Smartbill API token is not configured');
 });

@@ -1,27 +1,21 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Support\Facades\Http;
 
-it('can get vat rates', function () {
+it('lists vat rates', function (): void {
     Http::fake([
         'https://ws.smartbill.ro/SBORO/api/tax?cif=test' => Http::response(['taxes' => [['name' => 'Normala', 'value' => 19]]]),
     ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->taxes()->list('test');
-
-    expect($response['taxes'][0]['name'])->toBe('Normala');
+    expect(smartbill()->taxes()->list('test')['taxes'][0])
+        ->toHaveKey('name', 'Normala');
 });
 
-it('throws an exception when the get vat rates request fails', function () {
+it('throws when the request fails', function (): void {
     Http::fake([
         'https://ws.smartbill.ro/SBORO/api/tax?cif=test' => Http::response(['error' => 'Error'], 500),
     ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $smartbill->taxes()->list('test');
+    smartbill()->taxes()->list('test');
 })->throws(SmartbillApiException::class);

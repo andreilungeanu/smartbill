@@ -1,16 +1,21 @@
 <?php
 
-use AndreiLungeanu\Smartbill\Smartbill;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
 use Illuminate\Support\Facades\Http;
 
-it('can send a document', function () {
+it('sends the document', function (): void {
     Http::fake([
         'https://ws.smartbill.ro/SBORO/api/document/send' => Http::response(['message' => 'Success']),
     ]);
 
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->document()->send(['to' => 'test@example.com']);
-
-    expect($response['message'])->toBe('Success');
+    expect(smartbill()->document()->send(['to' => 'test@example.com']))
+        ->toHaveKey('message', 'Success');
 });
+
+it('throws when the request fails', function (): void {
+    Http::fake([
+        'https://ws.smartbill.ro/SBORO/api/document/send' => Http::response(['error' => 'Error'], 500),
+    ]);
+
+    smartbill()->document()->send(['to' => 'test@example.com']);
+})->throws(SmartbillApiException::class);

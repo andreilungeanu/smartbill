@@ -1,63 +1,94 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
-use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
-it('can create a payment', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/payment' => Http::response(['series' => 'TEST']),
-    ]);
+describe('create', function () {
+    it('returns the payment series', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment' => Http::response(['series' => 'TEST']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->payments()->create(['value' => 100]))
+            ->toHaveKey('series', 'TEST');
+    });
 
-    $response = $smartbill->payments()->create(['value' => 100]);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-    expect($response['series'])->toBe('TEST');
+        smartbill()->payments()->create(['value' => 100]);
+    })->throws(SmartbillApiException::class);
 });
 
-it('throws an exception when the create payment request fails', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/payment' => Http::response(['error' => 'Error'], 500),
-    ]);
+describe('getText', function () {
+    it('returns the fiscal receipt text', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['text' => 'base64']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->payments()->getText('cif', '1384'))
+            ->toHaveKey('text', 'base64');
+    });
 
-    $smartbill->payments()->create(['value' => 100]);
-})->throws(SmartbillApiException::class);
+    it('throws when the request fails', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response(['error' => 'Error'], 500),
+        ]);
 
-it('can delete a payment by invoice', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/payment/v2*' => Http::response(['message' => 'Success']),
-    ]);
-
-    $smartbill = app(Smartbill::class);
-
-    $response = $smartbill->payments()->deleteByInvoice('cif', 'paymentType', 'invoiceSeries', 'invoiceNumber');
-
-    expect($response['message'])->toBe('Success');
+        smartbill()->payments()->getText('cif', '1384');
+    })->throws(SmartbillApiException::class);
 });
 
-it('can delete a payment by payment details', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/payment/v2*' => Http::response(['message' => 'Success']),
-    ]);
+describe('deleteReceipt', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/chitanta*' => Http::response(['message' => 'Success']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->payments()->deleteReceipt('cif', 'seriesName', 'number'))
+            ->toHaveKey('message', 'Success');
 
-    $response = $smartbill->payments()->deleteByPayment('cif', 'paymentType', '2025-06-16', 100.0, 'clientName', 'clientCif');
-
-    expect($response['message'])->toBe('Success');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'DELETE'
+            && str_contains($request->url(), '/payment/chitanta')
+            && str_contains($request->url(), 'cif=cif')
+            && str_contains($request->url(), 'seriesname=seriesName')
+        );
+    });
 });
 
-it('can delete a receipt', function () {
-    Http::fake([
-        'https://ws.smartbill.ro/SBORO/api/payment/chitanta*' => Http::response(['message' => 'Success']),
-    ]);
+describe('deleteByInvoice', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/v2*' => Http::response(['message' => 'Success']),
+        ]);
 
-    $smartbill = app(Smartbill::class);
+        expect(smartbill()->payments()->deleteByInvoice('cif', 'paymentType', 'invoiceSeries', 'invoiceNumber'))
+            ->toHaveKey('message', 'Success');
 
-    $response = $smartbill->payments()->deleteReceipt('cif', 'seriesName', 'number');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'DELETE'
+            && str_contains($request->url(), '/payment/v2')
+            && str_contains($request->url(), 'cif=cif')
+            && str_contains($request->url(), 'invoiceSeries=invoiceSeries')
+        );
+    });
+});
 
-    expect($response['message'])->toBe('Success');
+describe('deleteByPayment', function () {
+    it('sends the identifiers as query parameters', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/v2*' => Http::response(['message' => 'Success']),
+        ]);
+
+        expect(smartbill()->payments()->deleteByPayment('cif', 'paymentType', '2025-06-16', 100.0, 'clientName', 'clientCif'))
+            ->toHaveKey('message', 'Success');
+
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'DELETE'
+            && str_contains($request->url(), '/payment/v2')
+            && str_contains($request->url(), 'paymentDate=2025-06-16')
+            && str_contains($request->url(), 'paymentValue=100')
+        );
+    });
 });
