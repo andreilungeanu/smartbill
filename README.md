@@ -55,7 +55,7 @@ $response = $smartbill->invoices()->createV2($invoiceData);
 Both of these methods work seamlessly because Laravel's service container automatically handles the creation of the required HTTP client and injects it into the package.
 
 #### 3. Manual Instantiation (Advanced)
-Direct instantiation with `new Smartbill()` is no longer possible due to the new dependency injection requirement. If you need to use this package outside of a Laravel application or wish to manually construct the object, you must now provide a configured `Illuminate\Http\Client\PendingRequest` instance to its constructor.
+Parameterless `new Smartbill()` is no longer possible: the constructor now takes a configured HTTP client. If you need to use this package outside of a Laravel application or wish to manually construct the object, you must now provide a configured `Illuminate\Http\Client\PendingRequest` instance to its constructor.
 
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
@@ -78,6 +78,7 @@ This example shows how to create a new invoice and retrieve its number.
 
 ```php
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
+use Illuminate\Support\Facades\Log;
 
 $invoiceData = [
     "companyVatCode" => "YOUR_COMPANY_VAT_CODE",
@@ -113,7 +114,7 @@ $invoiceData = [
     ]
 ];
 
-// The create method returns an array with the API response
+// createV2 returns an array with the API response
 try {
    $response = Smartbill::invoices()->createV2($invoiceData);
    // You can now access the invoice number
@@ -153,6 +154,7 @@ This example shows how to download the PDF content of an existing invoice.
 
 ```php
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 $cif = 'YOUR_COMPANY_VAT_CODE';
@@ -174,7 +176,9 @@ try {
 
 ### And many more...
 
-This is just a small sample of the available methods. For a complete list of all available endpoints and their parameters, please see the [full documentation](DOCUMENTATION.md).
+This is just a small sample of the available methods. The authoritative contract is Smartbill's
+OpenAPI spec at [api.smartbill.ro](https://api.smartbill.ro/); [DOCUMENTATION.md](DOCUMENTATION.md)
+is an older transcription kept for reference and still shows some deprecated signatures.
 
 ## Error handling
 
@@ -193,7 +197,8 @@ try {
 ```
 
 Every other failure throws `SmartbillApiException`. `getMessage()` is the cause only —
-Smartbill sometimes wraps it in HTML meant for its own interface, and that is stripped.
+Smartbill sometimes wraps it in HTML meant for its own interface; the tags and the trailing
+help text are removed, and the wrapped detail is kept.
 `getResponse()` still holds the untouched response.
 
 Exceeding the rate limit (30 calls per 10 seconds per token) throws
