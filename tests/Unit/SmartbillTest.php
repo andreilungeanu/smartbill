@@ -1,5 +1,6 @@
 <?php
 
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillConfigurationException;
 use AndreiLungeanu\Smartbill\Smartbill;
 
 it('returns the matching endpoint', function (string $method, string $expectedClass): void {
@@ -23,17 +24,24 @@ describe('timeout', function () {
 });
 
 describe('credentials', function () {
-    it('throws when the username is missing', function (): void {
+    it('names the username variable when it is missing', function (): void {
         config()->set('smartbill.api_username', '');
         app()->forgetInstance(Smartbill::class);
 
         smartbill();
-    })->throws(InvalidArgumentException::class, 'Smartbill API Username is not configured');
+    })->throws(SmartbillConfigurationException::class, 'set SMARTBILL_API_USERNAME in your .env file');
 
-    it('throws when the token is missing', function (): void {
+    it('names the token variable when it is missing', function (): void {
         config()->set('smartbill.api_token', '');
         app()->forgetInstance(Smartbill::class);
 
         smartbill();
-    })->throws(InvalidArgumentException::class, 'Smartbill API token is not configured');
+    })->throws(SmartbillConfigurationException::class, 'set SMARTBILL_API_TOKEN in your .env file');
+
+    it('stays catchable as InvalidArgumentException', function (): void {
+        config()->set('smartbill.api_token', '');
+        app()->forgetInstance(Smartbill::class);
+
+        expect(fn () => smartbill())->toThrow(InvalidArgumentException::class);
+    });
 });
