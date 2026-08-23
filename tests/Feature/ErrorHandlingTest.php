@@ -31,7 +31,7 @@ describe('errorText decides the outcome', function () {
         fakeApi('', 500);
 
         smartbill()->invoices()->createV2([]);
-    })->throws(SmartbillApiException::class, 'Smartbill API error');
+    })->throws(SmartbillApiException::class, 'Smartbill API error (HTTP 500)');
 });
 
 describe('decoding', function () {
@@ -95,7 +95,7 @@ describe('html bodies', function () {
             smartbill()->invoices()->getPdf('RO39521446', 'NOEXIST', '1');
             $this->fail('expected SmartbillApiException');
         } catch (SmartbillApiException $e) {
-            expect($e->getMessage())->toBe('Smartbill API error')
+            expect($e->getMessage())->toBe('Smartbill API error (HTTP 502)')
                 ->and($e->getCode())->toBe(502)
                 ->and($e->getResponse()->body())->toContain('502 Bad Gateway');
         }

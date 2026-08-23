@@ -46,11 +46,9 @@ class SmartbillRateLimitException extends SmartbillApiException
         return $this->intHeader('X-RateLimit-Reset');
     }
 
-    protected function resolveMessage(): string
+    protected function defaultMessage(): string
     {
-        $message = parent::resolveMessage();
-
-        return $message === 'Smartbill API error' ? 'Smartbill API rate limit exceeded' : $message;
+        return 'Smartbill API rate limit exceeded';
     }
 
     protected function intHeader(string $name): ?int

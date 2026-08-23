@@ -35,12 +35,12 @@ describe('message', function () {
 
     it('uses the default when the body is empty', function (): void {
         expect((new SmartbillApiException(failing('', 503)))->getMessage())
-            ->toBe('Smartbill API error');
+            ->toBe('Smartbill API error (HTTP 503)');
     });
 
     it('ignores an empty errorText, which means success', function (): void {
         expect((new SmartbillApiException(failing(['errorText' => '', 'message' => 'x'])))->getMessage())
-            ->toBe('Smartbill API error');
+            ->toBe('Smartbill API error (HTTP 400)');
     });
 
     it('keeps the cause when <b> sits inside the sentence', function (): void {
@@ -75,7 +75,7 @@ describe('message', function () {
     it('does not leak an HTML error page into the message', function (): void {
         $exception = new SmartbillApiException(failing('<html><body><h1>HTTP 500</h1></body></html>', 500));
 
-        expect($exception->getMessage())->toBe('Smartbill API error');
+        expect($exception->getMessage())->toBe('Smartbill API error (HTTP 500)');
     });
 
     it('reads the cooldown when present', function (): void {

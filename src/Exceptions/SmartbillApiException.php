@@ -104,7 +104,17 @@ class SmartbillApiException extends Exception
             $text = $this->response->body();
         }
 
-        return self::sanitize($text) ?: 'Smartbill API error';
+        return self::sanitize($text) ?: $this->defaultMessage();
+    }
+
+    /**
+     * Used when the body carries nothing quotable — an nginx or Tomcat HTML page, or an
+     * empty body. The status is then the only fact worth reporting, and without it the
+     * message cannot tell a 502 from a 401.
+     */
+    protected function defaultMessage(): string
+    {
+        return 'Smartbill API error (HTTP '.$this->response->status().')';
     }
 
     /**
