@@ -178,8 +178,9 @@ try {
 ### And many more...
 
 This is just a small sample of the available methods. The authoritative contract is Smartbill's
-OpenAPI spec at [api.smartbill.ro](https://api.smartbill.ro/); [DOCUMENTATION.md](DOCUMENTATION.md)
-is an older transcription kept for reference and still shows some deprecated signatures.
+OpenAPI spec at [api.smartbill.ro](https://api.smartbill.ro/).
+[DOCUMENTATION.md](https://github.com/andreilungeanu/smartbill/blob/main/DOCUMENTATION.md) is an
+older transcription kept on GitHub for reference; it still shows some deprecated signatures.
 
 ## Error handling
 
