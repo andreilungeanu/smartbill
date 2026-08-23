@@ -33,9 +33,9 @@ SMARTBILL_TIMEOUT=30
 
 ## Usage Examples
 
-You can interact with the API in two primary ways:
+You can interact with the API in three ways:
 
-#### 1. Using the Facade (recommended for Laravel)
+### 1. Using the Facade (recommended for Laravel)
 This is the most convenient method for use within a Laravel application.
 ```php
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
@@ -43,7 +43,7 @@ use AndreiLungeanu\Smartbill\Facades\Smartbill;
 $response = Smartbill::invoices()->createV2($invoiceData);
 ```
 
-#### 2. Using the Service Container
+### 2. Using the Service Container
 This is useful for dependency injection within your own classes.
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
@@ -54,7 +54,7 @@ $response = $smartbill->invoices()->createV2($invoiceData);
 
 Both of these methods work seamlessly because Laravel's service container automatically handles the creation of the required HTTP client and injects it into the package.
 
-#### 3. Manual Instantiation (Advanced)
+### 3. Manual Instantiation (Advanced)
 Parameterless `new Smartbill()` is no longer possible: the constructor now takes a configured HTTP client. If you need to use this package outside of a Laravel application or wish to manually construct the object, you must now provide a configured `Illuminate\Http\Client\PendingRequest` instance to its constructor.
 
 ```php
@@ -143,7 +143,8 @@ A successful `createV2` call will return an array decoded from the following JSO
 }
 ```
 
-`documentViewUrl` is a public link to the PDF that needs no authentication.
+`documentViewUrl` is a public link that needs no authentication. It serves an HTML view of
+the document, not the PDF — use `getPdf()` below for the PDF bytes.
 The deprecated `create()` returns the same body without the last three keys.
 
 ---
@@ -206,10 +207,34 @@ Exceeding the rate limit (30 calls per 10 seconds per token) throws
 
 ## Known Issues
 
+Smartbill-side behaviour, verified against the live API on 2026-08-23. Listed so callers
+know what to expect; none of it is something this package can fix.
+
+- **A rate-limit breach answers `403`, not the documented `429`.** The blocking response
+  carries no `Retry-After` and no `X-RateLimit-*` headers, and its `cooldown` field is `0`
+  even though the token stays locked for ten minutes. `X-RateLimit-*` ride on `2xx` only —
+  every error response drops them, so they cannot drive a backoff.
+- **A `cif` that does not belong to the account answers `401`, not `403`.** Retrying with
+  fresh credentials will not help; the credentials are fine, the `cif` is not.
+- **`GET /invoice/pdf` answers `502` with an nginx HTML page** for an unknown document or a
+  missing parameter, which is indistinguishable from a real outage. `GET /estimate/pdf`
+  answers a normal `400` with `errorText` for the same mistake.
+- **`GET /payment/text` answers `500` with a Tomcat error page** for an unknown `id`.
+- **`GET /estimate/invoices` answers `200` with a populated `errorText`** when the proforma
+  exists but has not been invoiced. That is the normal state, not a failure — read
+  `areInvoicesCreated`. A proforma that does not exist answers `410`.
+- **`/document/send` requires `subject` and `bodyText` Base64 encoded.** Existence is
+  checked first, so an unknown document answers `Documentul nu a fost gasit` and the Base64
+  requirement never surfaces — test it against a document that exists.
+- **`GET /series` lists only `f`, `p` and `c` series.** Other configured document types are
+  not reachable through the API, filtered or unfiltered.
+- **A `Bon` payment sent without `products` answers `500`.** Send the product lines; the
+  documented `400` for a missing cash register only appears once the request is complete.
+
 ### ~~Internal Server Errors on Invalid Request Data~~ &mdash; fixed by Smartbill
 
 > **Resolved.** This issue was found and reported from this package. Re-tested against the
-> live API on 2026-08-22 and confirmed fixed: a misspelled field now returns `400` with
+> live API on 2026-08-23 and confirmed fixed: a misspelled field now returns `400` with
 > `errors[].param` naming it &mdash; precisely the behaviour asked for below. The original
 > report is kept struck through for the record. See [Error handling](#error-handling) for
 > how the package surfaces it today.
