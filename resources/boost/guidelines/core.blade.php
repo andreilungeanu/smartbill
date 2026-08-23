@@ -12,7 +12,24 @@ One method per resource: `invoices()`, `estimates()`, `payments()`, `taxes()`, `
 <code-snippet name="Creating an invoice" lang="php">
 use AndreiLungeanu\Smartbill\Facades\Smartbill;
 
-$response = Smartbill::invoices()->createV2($invoiceData);
+$response = Smartbill::invoices()->createV2([
+    'companyVatCode' => 'RO12345678',   // required — your own company, not the client
+    'seriesName'     => 'SBINV',        // required
+    'client' => [
+        'name'       => 'UPBIT WEB DESIGN SRL', // required
+        'country'    => 'Romania',              // required
+        'vatCode'    => '39521446',
+        'isTaxPayer' => true,
+    ],
+    'products' => [[
+        'name'              => 'Consultanta', // required
+        'quantity'          => 1,             // required
+        'price'             => 100,           // required
+        'measuringUnitName' => 'buc',         // required
+        'taxPercentage'     => 21,            // required
+    ]],
+]);
+
 $response['number'];      // "0044"
 $response['documentId'];  // 50001414
 </code-snippet>
@@ -36,7 +53,9 @@ $response['documentId'];  // 50001414
 - **A populated `errorText` on a `200` is not always a failure.** For
   `estimates()->getInvoices()` it means the proforma exists but has not been invoiced —
   read `areInvoicesCreated` instead. The package already treats that case as success.
-- **A misspelled or wrongly typed field throws `SmartbillRequestException`**, which names
+- **Use the exact schema field names; never translate them.** `name`, not `nume`;
+  `seriesName`, not `serie`. Most are English camelCase, but not all — `aviz` really is
+  `aviz`. A wrong or wrongly typed field throws `SmartbillRequestException`, which names
   the offending field. Catch it before the base class.
 
 @verbatim
