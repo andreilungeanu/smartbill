@@ -39,7 +39,7 @@ class SmartbillRequestException extends SmartbillApiException
 
     /**
      * One of json_mapping_error, json_parse_error, invalid_accept_header,
-     * method_not_allowed.
+     * invalid_content_type, method_not_allowed, resource_not_found.
      */
     public function getErrorCode(): ?string
     {
