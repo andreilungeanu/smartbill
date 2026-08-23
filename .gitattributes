@@ -32,3 +32,6 @@
 /phpstan.neon.dist  export-ignore
 /phpstan-baseline.neon  export-ignore
 /scripts            export-ignore
+# Stale transcription: still shows create() and 19% VAT. The OpenAPI spec at
+# api.smartbill.ro is the contract; keep this on GitHub, out of the dist.
+/DOCUMENTATION.md   export-ignore
