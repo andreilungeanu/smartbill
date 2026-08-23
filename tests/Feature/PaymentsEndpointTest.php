@@ -97,3 +97,27 @@ describe('deleteByPayment', function () {
         );
     });
 });
+
+describe('getTextDecoded', function () {
+    it('decodes the receipt text in place', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response([
+                'errorText' => '',
+                'message' => base64_encode('BON FISCAL'),
+            ]),
+        ]);
+
+        expect(smartbill()->payments()->getTextDecoded('cif', 1384)['message'])->toBe('BON FISCAL');
+    });
+
+    it('leaves a message that is not valid Base64 untouched', function (): void {
+        Http::fake([
+            'https://ws.smartbill.ro/SBORO/api/payment/text*' => Http::response([
+                'errorText' => '',
+                'message' => 'not base64 !!',
+            ]),
+        ]);
+
+        expect(smartbill()->payments()->getTextDecoded('cif', 1384)['message'])->toBe('not base64 !!');
+    });
+});

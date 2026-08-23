@@ -30,6 +30,29 @@ class PaymentsEndpoint extends BaseEndpoint
     }
 
     /**
+     * getText() with the receipt text decoded in place. A message that is not valid
+     * Base64 is left exactly as it arrived rather than replaced with false, so a change
+     * of encoding upstream degrades to the raw value instead of losing it.
+     *
+     * @return array<string, mixed>
+     */
+    public function getTextDecoded(string $cif, int|string $id): array
+    {
+        $response = $this->getText($cif, $id);
+        $message = $response['message'] ?? null;
+
+        if (is_string($message) && $message !== '') {
+            $decoded = base64_decode($message, true);
+
+            if ($decoded !== false) {
+                $response['message'] = $decoded;
+            }
+        }
+
+        return $response;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function deleteReceipt(string $cif, string $seriesName, string $number): array

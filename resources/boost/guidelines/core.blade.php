@@ -30,7 +30,9 @@ $response['documentId'];  // 50001414
   `403`, not the documented `429`, and sends no `X-RateLimit-*` headers on any error
   response, so a retry loop turns a ten second wait into a ten minute outage.
 - **`document()->send()` needs `subject` and `bodyText` Base64 encoded.** Plain text is
-  rejected with a `400`. The package does not encode them for you.
+  rejected with a `400`. Call `sendEncoded()` to encode on the way out, or `send()` when you
+  encoded them yourself. `payments()->getTextDecoded()` is the counterpart for the Base64
+  receipt text that `getText()` returns untouched.
 - **A populated `errorText` on a `200` is not always a failure.** For
   `estimates()->getInvoices()` it means the proforma exists but has not been invoiced —
   read `areInvoicesCreated` instead. The package already treats that case as success.
