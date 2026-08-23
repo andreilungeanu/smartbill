@@ -262,6 +262,25 @@ know what to expect; none of it is something this package can fix.
 
 ~~While this package attempts to mitigate these issues where possible, the fundamental problems lie with the API's implementation. We are awaiting fixes from the Smartbill provider to ensure more reliable and standards-compliant behavior.~~
 
+## AI coding agents (Laravel Boost)
+
+This package ships AI guidelines at `resources/boost/guidelines/core.blade.php`. If your
+application uses [Laravel Boost](https://github.com/laravel/boost) (`^2.2`), Boost can fold
+them into your agent instruction files (`CLAUDE.md`, `AGENTS.md`, Cursor rules, ...) so your
+assistant knows the API's traps before it writes a single call.
+
+Boost will not enable them on its own — you have to opt in:
+
+```bash
+php artisan boost:install
+```
+
+On an existing Boost install, use `php artisan boost:update --discover` instead (Boost
+2.3.2+; the default from 2.5.0). Either way, pick `andreilungeanu/smartbill` when Boost
+asks which third-party guidelines to include. Boost skips that prompt in non-interactive
+runs, and from 2.5.3 also when `boost:update` runs as a Composer script — so a
+`post-update-cmd` hook will not add the package for you.
+
 ## Testing
 
 ```bash
