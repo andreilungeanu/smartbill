@@ -53,12 +53,14 @@ _ide_helper_models.php
 /.kilo
 /.codex
 /.agents
+/.zcode
 
 # OS junk
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# Local scratch (committed API reference is DOCUMENTATION.md at the repo root)
+# Local scratch
 /docs
-/plan.md
+/scripts
+/CLAUDE.md
