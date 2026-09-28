@@ -246,3 +246,23 @@ describe('connection failures', function () {
         $this->fail('expected SmartbillConnectionException');
     });
 });
+
+describe('unexpected 2xx bodies', function () {
+    it('throws when a data call answers without JSON', function (): void {
+        fakeApi('<html><body>Maintenance</body></html>', 200);
+
+        smartbill()->invoices()->createV2([]);
+    })->throws(SmartbillApiException::class, 'Smartbill answered HTTP 200 without a JSON object');
+
+    it('throws when a call whose answer is not needed answers with a page', function (): void {
+        fakeApi('<html><body>Maintenance</body></html>', 200);
+
+        smartbill()->invoices()->cancel('RO39521446', 'TE', '0001');
+    })->throws(SmartbillApiException::class, 'Smartbill answered HTTP 200 without a JSON object');
+
+    it('throws when a PDF download answers something else', function (): void {
+        fakeApi('<html><body>Maintenance</body></html>', 200);
+
+        smartbill()->invoices()->getPdf('RO39521446', 'TE', '0001');
+    })->throws(SmartbillApiException::class, 'Smartbill answered HTTP 200 without a PDF');
+});

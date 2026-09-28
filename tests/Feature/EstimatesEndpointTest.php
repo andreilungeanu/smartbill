@@ -37,11 +37,11 @@ describe('createV2', function () {
 describe('getPdf', function () {
     it('returns the PDF body', function (): void {
         Http::fake([
-            'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response('PDF Content'),
+            'https://ws.smartbill.ro/SBORO/api/estimate/pdf*' => Http::response('%PDF-1.4 content'),
         ]);
 
         expect(smartbill()->estimates()->getPdf('test-cif', 'test-series', '123'))
-            ->toBe('PDF Content');
+            ->toBe('%PDF-1.4 content');
     });
 
     it('throws when the request fails', function (): void {

@@ -65,7 +65,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/invoice/cancel', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('PUT', '/invoice/cancel', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 
     /**
@@ -73,7 +73,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/invoice/restore', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('PUT', '/invoice/restore', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 
     /**
@@ -81,6 +81,6 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/invoice', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('DELETE', '/invoice', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 }

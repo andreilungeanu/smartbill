@@ -8,9 +8,9 @@ use Illuminate\Support\Str;
 
 class SmartbillApiException extends Exception implements SmartbillException
 {
-    public function __construct(protected Response $response)
+    public function __construct(protected Response $response, ?string $message = null)
     {
-        parent::__construct($this->resolveMessage(), $response->status());
+        parent::__construct($message ?? $this->resolveMessage(), $response->status());
     }
 
     /**
@@ -27,6 +27,15 @@ class SmartbillApiException extends Exception implements SmartbillException
         }
 
         return new self($response);
+    }
+
+    /**
+     * A 2xx whose body is not what the call returns — an empty body, or an HTML page
+     * from a proxy in front of Smartbill. The body stays reachable through getResponse().
+     */
+    public static function unexpectedBody(Response $response, string $expected): self
+    {
+        return new self($response, "Smartbill answered HTTP {$response->status()} without {$expected}");
     }
 
     /**

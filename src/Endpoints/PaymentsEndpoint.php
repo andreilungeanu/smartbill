@@ -57,7 +57,7 @@ class PaymentsEndpoint extends BaseEndpoint
      */
     public function deleteReceipt(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/payment/chitanta', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('DELETE', '/payment/chitanta', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 
     /**
@@ -70,7 +70,7 @@ class PaymentsEndpoint extends BaseEndpoint
             'paymentType' => $paymentType,
             'invoiceSeries' => $invoiceSeries,
             'invoiceNumber' => $invoiceNumber,
-        ]));
+        ]), allowEmpty: true);
     }
 
     /**
@@ -89,6 +89,6 @@ class PaymentsEndpoint extends BaseEndpoint
             'paymentValue' => $paymentValue,
             'clientName' => $clientName,
             'clientCif' => $clientCif,
-        ]));
+        ]), allowEmpty: true);
     }
 }

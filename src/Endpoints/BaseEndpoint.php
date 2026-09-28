@@ -77,27 +77,50 @@ abstract class BaseEndpoint
     }
 
     /**
+     * A 2xx without a JSON object was not answered by Smartbill, and returning [] would
+     * only move the failure to the caller's first array access. Pass $allowEmpty = true
+     * only for calls whose answer the caller does not need (cancel, restore, delete). It
+     * accepts an empty body or JSON null, never an HTML page: that would report a mutation
+     * that did not happen as done.
+     *
      * @return array<string, mixed>
      */
-    protected function decode(Response $response, bool $errorTextIsFailure = true): array
+    protected function decode(Response $response, bool $errorTextIsFailure = true, bool $allowEmpty = false): array
     {
         $this->guard($response, $errorTextIsFailure);
 
         $body = $response->json();
 
-        return is_array($body) ? $body : [];
+        if (is_array($body)) {
+            return $body;
+        }
+
+        if ($allowEmpty && in_array(trim($response->body()), ['', 'null'], true)) {
+            return [];
+        }
+
+        throw SmartbillApiException::unexpectedBody($response, 'a JSON object');
     }
 
     /**
      * For binary payloads. /invoice/pdf answers 502 with an nginx HTML body when a
      * parameter is missing or the document is unknown, while /estimate/pdf answers a
      * normal 400 with errorText. The status covers both.
+     *
+     * A 2xx that is not a PDF is refused too, so a proxy page is never saved as one.
+     * The PDF spec allows junk ahead of the header within the first 1024 bytes.
      */
     protected function download(Response $response): string
     {
         $this->guard($response);
 
-        return $response->body();
+        $body = $response->body();
+
+        if (! str_contains(substr($body, 0, 1024), '%PDF-')) {
+            throw SmartbillApiException::unexpectedBody($response, 'a PDF');
+        }
+
+        return $body;
     }
 
     /**

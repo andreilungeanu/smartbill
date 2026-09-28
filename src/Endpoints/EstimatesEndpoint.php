@@ -57,7 +57,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/estimate/cancel', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('PUT', '/estimate/cancel', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 
     /**
@@ -65,7 +65,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/estimate/restore', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('PUT', '/estimate/restore', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 
     /**
@@ -73,6 +73,6 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/estimate', $this->documentQuery($cif, $seriesName, $number)));
+        return $this->decode($this->sendQuery('DELETE', '/estimate', $this->documentQuery($cif, $seriesName, $number)), allowEmpty: true);
     }
 }
