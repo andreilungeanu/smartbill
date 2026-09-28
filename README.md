@@ -55,20 +55,17 @@ $response = $smartbill->invoices()->createV2($invoiceData);
 Both of these methods work seamlessly because Laravel's service container automatically handles the creation of the required HTTP client and injects it into the package.
 
 ### 3. Manual Instantiation (Advanced)
-Parameterless `new Smartbill()` is no longer possible: the constructor now takes a configured HTTP client. If you need to use this package outside of a Laravel application or wish to manually construct the object, you must now provide a configured `Illuminate\Http\Client\PendingRequest` instance to its constructor.
+Parameterless `new Smartbill()` is no longer possible: the constructor takes the HTTP client. If you need to use this package outside of a Laravel application or wish to manually construct the object, pass a closure that returns a configured `Illuminate\Http\Client\PendingRequest`. A `PendingRequest` instance is still accepted, but it ignores an `Http::fake()` registered after it was built.
 
 ```php
 use AndreiLungeanu\Smartbill\Smartbill;
 use Illuminate\Http\Client\Factory;
 
-// Manually create and configure the HTTP client
+// The closure builds the HTTP client; it runs once per request
 $http = new Factory();
-$client = $http->withBasicAuth('your-username', 'your-api-token')
+$smartbill = new Smartbill(fn () => $http->withBasicAuth('your-username', 'your-api-token')
     ->baseUrl('https://ws.smartbill.ro/SBORO/api')
-    ->acceptJson();
-
-// Pass the configured client to the constructor
-$smartbill = new Smartbill($client);
+    ->acceptJson());
 $response = $smartbill->invoices()->createV2($invoiceData);
 ```
 
@@ -198,13 +195,20 @@ try {
 }
 ```
 
-Every other failure throws `SmartbillApiException`. `getMessage()` is the cause only —
-Smartbill sometimes wraps it in HTML meant for its own interface; the tags and the trailing
-help text are removed, and the wrapped detail is kept.
-`getResponse()` still holds the untouched response.
+Every other API failure throws `SmartbillApiException` — on a `401` (wrong credentials, or
+a `cif` outside the account) its subclass `SmartbillAuthenticationException`. `getMessage()`
+is the cause only — Smartbill sometimes wraps it in HTML meant for its own interface; the
+tags and the trailing help text are removed, and the wrapped detail is kept.
+`getResponse()` still holds the untouched response. A `2xx` without JSON, or a PDF download
+that is not a PDF, throws it too.
+
+A timeout or unreachable host throws `SmartbillConnectionException`, a subclass of Laravel's
+`ConnectionException`. The document may already exist — check before retrying a create.
 
 Exceeding the rate limit (30 calls per 10 seconds per token) throws
 `SmartbillRateLimitException` and locks the token for ten minutes. Do not retry it.
+
+Every package exception implements `SmartbillException`.
 
 ## Known Issues
 

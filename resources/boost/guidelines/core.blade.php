@@ -3,7 +3,7 @@
 `andreilungeanu/smartbill` wraps the Smartbill.ro V1 REST API (Romanian invoicing). Resolve
 it from the container or the `Smartbill` facade — the service provider binds it as a
 singleton with an authenticated HTTP client. Never construct it with `new Smartbill()`; the
-constructor takes a pre-built `Illuminate\Http\Client\PendingRequest`.
+constructor takes a closure that builds an `Illuminate\Http\Client\PendingRequest` per request.
 
 One method per resource: `invoices()`, `estimates()`, `payments()`, `taxes()`, `series()`,
 `stocks()`, `document()`.
@@ -71,9 +71,12 @@ try {
 </code-snippet>
 @endverbatim
 
-Every other failure throws `SmartbillApiException`; `getResponse()` holds the untouched
-response. Configuration lives in `config/smartbill.php`, driven by `SMARTBILL_API_USERNAME`
-and `SMARTBILL_API_TOKEN`. A missing one throws `SmartbillConfigurationException` naming it.
+Every other API failure throws `SmartbillApiException` (on a `401`, its subclass
+`SmartbillAuthenticationException`); `getResponse()` holds the untouched response. A timeout
+throws `SmartbillConnectionException` — never retry a create blindly after one, the document
+may already exist. All of them implement `SmartbillException`. Configuration lives in
+`config/smartbill.php`, driven by `SMARTBILL_API_USERNAME` and `SMARTBILL_API_TOKEN`. A
+missing one throws `SmartbillConfigurationException` naming it.
 
 ### Testing
 
