@@ -3,6 +3,11 @@ includes:
 
 parameters:
     level: 6
+    # composer.json allows PHP 8.2, but CI runs 8.4+. Checking the whole range keeps
+    # src from calling a function or constant that 8.2 does not have.
+    phpVersion:
+        min: 80200
+        max: 80599
     paths:
         - src
         - tests
