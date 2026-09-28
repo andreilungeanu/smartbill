@@ -26,6 +26,10 @@ class SmartbillApiException extends Exception implements SmartbillException
             return new SmartbillRequestException($response);
         }
 
+        if (SmartbillAuthenticationException::matches($response)) {
+            return new SmartbillAuthenticationException($response);
+        }
+
         return new self($response);
     }
 

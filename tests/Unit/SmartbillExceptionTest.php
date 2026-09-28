@@ -1,6 +1,7 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillAuthenticationException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillConfigurationException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillConnectionException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillException;
@@ -217,6 +218,21 @@ it('marks every package exception with one interface', function (string $class):
     SmartbillApiException::class,
     SmartbillRateLimitException::class,
     SmartbillRequestException::class,
+    SmartbillAuthenticationException::class,
     SmartbillConfigurationException::class,
     SmartbillConnectionException::class,
 ]);
+
+describe('authentication', function () {
+    it('picks the authentication exception for a 401', function (): void {
+        $exception = SmartbillApiException::from(failing('', 401));
+
+        expect($exception)->toBeInstanceOf(SmartbillAuthenticationException::class)
+            ->and($exception->getMessage())->toBe('Smartbill rejected the credentials or the cif (HTTP 401)');
+    });
+
+    it('keeps the errorText of a 401 when there is one', function (): void {
+        expect(SmartbillApiException::from(failing(['errorText' => 'Autentificare esuata'], 401))->getMessage())
+            ->toBe('Autentificare esuata');
+    });
+});
