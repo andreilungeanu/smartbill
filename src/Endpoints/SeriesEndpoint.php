@@ -21,6 +21,6 @@ class SeriesEndpoint extends BaseEndpoint
             $data['type'] = $type;
         }
 
-        return $this->decode($this->client->get('/series', $data));
+        return $this->decode($this->sendQuery('GET', '/series', $data));
     }
 }

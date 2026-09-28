@@ -210,3 +210,15 @@ describe('rate limiting through an endpoint', function () {
         }
     });
 });
+
+describe('the client factory', function () {
+    it('applies a fake registered after the client was resolved', function (): void {
+        // A PendingRequest copies the fakes when it is built. Resolving first, as any
+        // injected service would, must not route the next call past the fake.
+        $taxes = smartbill()->taxes();
+
+        fakeApi(['errorText' => '', 'taxes' => []], 200);
+
+        expect($taxes->list('RO39521446'))->toHaveKey('taxes');
+    });
+});

@@ -9,11 +9,19 @@ use AndreiLungeanu\Smartbill\Endpoints\PaymentsEndpoint;
 use AndreiLungeanu\Smartbill\Endpoints\SeriesEndpoint;
 use AndreiLungeanu\Smartbill\Endpoints\StocksEndpoint;
 use AndreiLungeanu\Smartbill\Endpoints\TaxesEndpoint;
+use Closure;
 use Illuminate\Http\Client\PendingRequest;
 
 class Smartbill
 {
-    public function __construct(protected PendingRequest $client) {}
+    /**
+     * Pass a factory rather than a built client where possible: a PendingRequest copies
+     * Http::fake() and preventStrayRequests() when it is created, so one built ahead of
+     * a fake sends its requests to the live API.
+     *
+     * @param  PendingRequest|Closure(): PendingRequest  $client
+     */
+    public function __construct(protected PendingRequest|Closure $client) {}
 
     public function invoices(): InvoicesEndpoint
     {

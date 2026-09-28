@@ -14,7 +14,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function create(array $data): array
     {
-        return $this->decode($this->client->post('/invoice', $data));
+        return $this->decode($this->sendJson('POST', '/invoice', $data));
     }
 
     /**
@@ -23,16 +23,12 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function createV2(array $data): array
     {
-        return $this->decode($this->client->post('/invoice/v2', $data));
+        return $this->decode($this->sendJson('POST', '/invoice/v2', $data));
     }
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        return $this->download($this->client->get('/invoice/pdf', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->download($this->sendQuery('GET', '/invoice/pdf', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -40,11 +36,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function getPaymentStatus(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->client->get('/invoice/paymentstatus', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('GET', '/invoice/paymentstatus', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -65,7 +57,7 @@ class InvoicesEndpoint extends BaseEndpoint
             $data['issueDate'] = $issueDate;
         }
 
-        return $this->decode($this->client->post('/invoice/reverse', $data));
+        return $this->decode($this->sendJson('POST', '/invoice/reverse', $data));
     }
 
     /**
@@ -73,11 +65,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/invoice/cancel', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('PUT', '/invoice/cancel', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -85,11 +73,7 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/invoice/restore', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('PUT', '/invoice/restore', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -97,10 +81,6 @@ class InvoicesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/invoice', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('DELETE', '/invoice', $this->documentQuery($cif, $seriesName, $number)));
     }
 }

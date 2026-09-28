@@ -10,7 +10,7 @@ class PaymentsEndpoint extends BaseEndpoint
      */
     public function create(array $data): array
     {
-        return $this->decode($this->client->post('/payment', $data));
+        return $this->decode($this->sendJson('POST', '/payment', $data));
     }
 
     /**
@@ -23,7 +23,7 @@ class PaymentsEndpoint extends BaseEndpoint
      */
     public function getText(string $cif, int|string $id): array
     {
-        return $this->decode($this->client->get('/payment/text', [
+        return $this->decode($this->sendQuery('GET', '/payment/text', [
             'cif' => $cif,
             'id' => $id,
         ]));
@@ -57,11 +57,7 @@ class PaymentsEndpoint extends BaseEndpoint
      */
     public function deleteReceipt(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/payment/chitanta', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('DELETE', '/payment/chitanta', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**

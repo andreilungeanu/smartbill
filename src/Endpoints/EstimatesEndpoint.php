@@ -13,7 +13,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function create(array $data): array
     {
-        return $this->decode($this->client->post('/estimate', $data));
+        return $this->decode($this->sendJson('POST', '/estimate', $data));
     }
 
     /**
@@ -22,16 +22,12 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function createV2(array $data): array
     {
-        return $this->decode($this->client->post('/estimate/v2', $data));
+        return $this->decode($this->sendJson('POST', '/estimate/v2', $data));
     }
 
     public function getPdf(string $cif, string $seriesName, string $number): string
     {
-        return $this->download($this->client->get('/estimate/pdf', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->download($this->sendQuery('GET', '/estimate/pdf', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -46,11 +42,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function getInvoices(string $cif, string $seriesName, string $number): array
     {
-        $response = $this->client->get('/estimate/invoices', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]);
+        $response = $this->sendQuery('GET', '/estimate/invoices', $this->documentQuery($cif, $seriesName, $number));
 
         // Suppress errorText only alongside areInvoicesCreated, which marks the known
         // state. Any other populated errorText on a 2xx is still a real failure.
@@ -65,11 +57,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function cancel(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/estimate/cancel', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('PUT', '/estimate/cancel', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -77,11 +65,7 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function restore(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('PUT', '/estimate/restore', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('PUT', '/estimate/restore', $this->documentQuery($cif, $seriesName, $number)));
     }
 
     /**
@@ -89,10 +73,6 @@ class EstimatesEndpoint extends BaseEndpoint
      */
     public function delete(string $cif, string $seriesName, string $number): array
     {
-        return $this->decode($this->sendQuery('DELETE', '/estimate', [
-            'cif' => $cif,
-            'seriesname' => $seriesName,
-            'number' => $number,
-        ]));
+        return $this->decode($this->sendQuery('DELETE', '/estimate', $this->documentQuery($cif, $seriesName, $number)));
     }
 }

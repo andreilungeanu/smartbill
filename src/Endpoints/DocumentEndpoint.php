@@ -14,7 +14,7 @@ class DocumentEndpoint extends BaseEndpoint
      */
     public function send(array $data): array
     {
-        return $this->decode($this->client->post('/document/send', $data));
+        return $this->decode($this->sendJson('POST', '/document/send', $data));
     }
 
     /**

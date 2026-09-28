@@ -27,6 +27,6 @@ class StocksEndpoint extends BaseEndpoint
             $data['productCode'] = $productCode;
         }
 
-        return $this->decode($this->client->get('/stocks', $data));
+        return $this->decode($this->sendQuery('GET', '/stocks', $data));
     }
 }

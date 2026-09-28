@@ -3,24 +3,71 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use Closure;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
 abstract class BaseEndpoint
 {
-    public function __construct(protected PendingRequest $client) {}
+    /**
+     * @param  PendingRequest|Closure(): PendingRequest  $client
+     */
+    public function __construct(protected PendingRequest|Closure $client) {}
+
+    /**
+     * A fresh client for every request.
+     *
+     * The service provider hands over a factory, so each call picks up the Http::fake()
+     * and preventStrayRequests() state current at that moment. A PendingRequest copies
+     * both when it is created: one built before the fake was registered would send the
+     * request to the live API. A PendingRequest passed in directly is cloned, so nothing
+     * set on it for one request carries into the next.
+     */
+    protected function client(): PendingRequest
+    {
+        return $this->client instanceof Closure ? ($this->client)() : clone $this->client;
+    }
 
     /**
      * Send a request whose parameters belong in the query string.
-     *
-     * Do not call withQueryParameters() on $this->client — the HTTP client is a
-     * singleton and that method mutates it for every later request.
      *
      * @param  array<string, mixed>  $query
      */
     protected function sendQuery(string $method, string $path, array $query): Response
     {
-        return $this->client->send($method, $path, ['query' => $query]);
+        return $this->sendRequest($method, $path, ['query' => $query]);
+    }
+
+    /**
+     * Send a request whose parameters belong in a JSON body.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function sendJson(string $method, string $path, array $data): Response
+    {
+        return $this->sendRequest($method, $path, ['json' => $data]);
+    }
+
+    /**
+     * The cif / seriesname / number triple that identifies a document.
+     *
+     * @return array<string, string>
+     */
+    protected function documentQuery(string $cif, string $seriesName, string $number): array
+    {
+        return [
+            'cif' => $cif,
+            'seriesname' => $seriesName,
+            'number' => $number,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $options
+     */
+    protected function sendRequest(string $method, string $path, array $options): Response
+    {
+        return $this->client()->send($method, $path, $options);
     }
 
     /**

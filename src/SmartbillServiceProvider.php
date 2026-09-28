@@ -4,6 +4,7 @@ namespace AndreiLungeanu\Smartbill;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillConfigurationException;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -30,12 +31,12 @@ class SmartbillServiceProvider extends PackageServiceProvider
                 throw SmartbillConfigurationException::missing('SMARTBILL_API_TOKEN');
             }
 
-            $client = Http::withBasicAuth($config['api_username'], $config['api_token'])
+            // A factory, not a built client: the singleton outlives any one test, and a
+            // client built before Http::fake() would never see the fake.
+            return new Smartbill(fn (): PendingRequest => Http::withBasicAuth($config['api_username'], $config['api_token'])
                 ->baseUrl($config['api_url'])
                 ->timeout($config['timeout'])
-                ->acceptJson();
-
-            return new Smartbill($client);
+                ->acceptJson());
         });
     }
 }

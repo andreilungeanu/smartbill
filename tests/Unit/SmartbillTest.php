@@ -2,6 +2,7 @@
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillConfigurationException;
 use AndreiLungeanu\Smartbill\Smartbill;
+use Illuminate\Http\Client\PendingRequest;
 
 it('returns the matching endpoint', function (string $method, string $expectedClass): void {
     expect(smartbill()->{$method}())->toBeInstanceOf($expectedClass);
@@ -12,7 +13,7 @@ describe('timeout', function () {
         config()->set('smartbill.timeout', 7);
         app()->forgetInstance(Smartbill::class);
 
-        $client = (new ReflectionClass(smartbill()))->getProperty('client')->getValue(smartbill());
+        $client = (fn (): PendingRequest => $this->client())->call(smartbill()->taxes());
         $options = (new ReflectionClass($client))->getProperty('options')->getValue($client);
 
         expect($options)->toMatchArray(['timeout' => 7]);

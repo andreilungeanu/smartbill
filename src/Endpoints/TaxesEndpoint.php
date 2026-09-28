@@ -9,6 +9,6 @@ class TaxesEndpoint extends BaseEndpoint
      */
     public function list(string $cif): array
     {
-        return $this->decode($this->client->get('/tax', ['cif' => $cif]));
+        return $this->decode($this->sendQuery('GET', '/tax', ['cif' => $cif]));
     }
 }
