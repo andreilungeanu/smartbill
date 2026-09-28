@@ -7,12 +7,35 @@ on:
       - '.github/workflows/run-tests.yml'
       - 'phpunit.xml.dist'
       - 'composer.json'
+  # No lockfile: a weekly run catches a dependency release that breaks the suite.
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # composer.json promises PHP 8.2, which no Pest 5 row can run. Lint src there so
+  # 8.3+ syntax cannot ship unnoticed; PHPStan covers the API side via phpVersion.
+  lint-php82:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    name: PHP 8.2 syntax
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Lint
+        run: find src config -name '*.php' -print0 | xargs -0 -n1 php -l
+
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
