@@ -1,8 +1,10 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillConnectionException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRateLimitException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRequestException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -220,5 +222,27 @@ describe('the client factory', function () {
         fakeApi(['errorText' => '', 'taxes' => []], 200);
 
         expect($taxes->list('RO39521446'))->toHaveKey('taxes');
+    });
+});
+
+describe('connection failures', function () {
+    it('wraps them in a package exception', function (): void {
+        Http::fake(['https://ws.smartbill.ro/SBORO/api/*' => Http::failedConnection('cURL error 28: Operation timed out')]);
+
+        smartbill()->invoices()->createV2([]);
+    })->throws(SmartbillConnectionException::class, 'Smartbill did not answer POST /invoice/v2: cURL error 28: Operation timed out');
+
+    it('keeps the Laravel exception as the previous one', function (): void {
+        Http::fake(['https://ws.smartbill.ro/SBORO/api/*' => Http::failedConnection()]);
+
+        try {
+            smartbill()->taxes()->list('RO39521446');
+        } catch (SmartbillConnectionException $e) {
+            expect($e->getPrevious())->toBeInstanceOf(ConnectionException::class);
+
+            return;
+        }
+
+        $this->fail('expected SmartbillConnectionException');
     });
 });

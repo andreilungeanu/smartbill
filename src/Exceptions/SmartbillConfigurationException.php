@@ -11,7 +11,7 @@ use InvalidArgumentException;
  * Extends InvalidArgumentException because the service provider threw that directly
  * before this class existed — an application already catching it keeps working.
  */
-class SmartbillConfigurationException extends InvalidArgumentException
+class SmartbillConfigurationException extends InvalidArgumentException implements SmartbillException
 {
     public static function missing(string $variable): self
     {

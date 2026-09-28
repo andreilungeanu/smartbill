@@ -6,7 +6,7 @@ use Exception;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Str;
 
-class SmartbillApiException extends Exception
+class SmartbillApiException extends Exception implements SmartbillException
 {
     public function __construct(protected Response $response)
     {

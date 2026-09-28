@@ -1,6 +1,9 @@
 <?php
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillConfigurationException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillConnectionException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRateLimitException;
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillRequestException;
 use Illuminate\Http\Client\Response;
@@ -207,3 +210,13 @@ describe('context', function () {
         expect(method_exists(SmartbillApiException::class, 'report'))->toBeFalse();
     });
 });
+
+it('marks every package exception with one interface', function (string $class): void {
+    expect(is_subclass_of($class, SmartbillException::class))->toBeTrue();
+})->with([
+    SmartbillApiException::class,
+    SmartbillRateLimitException::class,
+    SmartbillRequestException::class,
+    SmartbillConfigurationException::class,
+    SmartbillConnectionException::class,
+]);

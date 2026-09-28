@@ -3,7 +3,9 @@
 namespace AndreiLungeanu\Smartbill\Endpoints;
 
 use AndreiLungeanu\Smartbill\Exceptions\SmartbillApiException;
+use AndreiLungeanu\Smartbill\Exceptions\SmartbillConnectionException;
 use Closure;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 
@@ -67,7 +69,11 @@ abstract class BaseEndpoint
      */
     protected function sendRequest(string $method, string $path, array $options): Response
     {
-        return $this->client()->send($method, $path, $options);
+        try {
+            return $this->client()->send($method, $path, $options);
+        } catch (ConnectionException $e) {
+            throw SmartbillConnectionException::from($e, $method, $path);
+        }
     }
 
     /**
