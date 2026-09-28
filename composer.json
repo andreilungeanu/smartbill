@@ -39,10 +39,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "AndreiLungeanu\\Smartbill\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/",
-            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
-            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+            "AndreiLungeanu\\Smartbill\\Tests\\": "tests/"
         }
     },
     "scripts": {
@@ -51,12 +48,6 @@
             "@prepare"
         ],
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
-        "build": "@php vendor/bin/testbench workbench:build --ansi",
-        "start": [
-            "Composer\\Config::disableProcessTimeout",
-            "@composer run build",
-            "@php vendor/bin/testbench serve"
-        ],
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test:parallel": "vendor/bin/pest --parallel",
@@ -64,11 +55,6 @@
         "test:type-coverage": "vendor/bin/pest --type-coverage --min=100",
         "format": "vendor/bin/pint",
         "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
-        "serve": [
-            "Composer\\Config::disableProcessTimeout",
-            "@build",
-            "@php vendor/bin/testbench serve --ansi"
-        ],
         "lint": [
             "@php vendor/bin/pint --ansi",
             "@php vendor/bin/phpstan analyse --verbose --ansi"

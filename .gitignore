@@ -31,7 +31,7 @@ phpunit.xml.dist.bak
 phpunit.xml
 phpstan.neon
 
-# Orchestra Testbench (generated workbench; composer.json autoloads it)
+# Orchestra Testbench (a generated workbench, if one is ever installed)
 testbench.yaml
 /@testbench
 /workbench
