@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-28
+
+### Added
+- `SmartbillConnectionException` for timeouts and unreachable hosts. It extends Laravel's
+  `ConnectionException`, so existing catches keep working. After a timeout the document may
+  already exist — check before retrying a create
+- `SmartbillAuthenticationException` for `401`: wrong credentials, or a `cif` outside the
+  account
+- `SmartbillConfigurationException` naming the missing env var. It extends
+  `InvalidArgumentException`, which the service provider threw before
+- `SmartbillException`, implemented by every exception the package throws
+- `document()->sendEncoded()` and `payments()->getTextDecoded()`, which handle the Base64
+  encoding Smartbill requires
+- `Smartbill` accepts a closure that builds the HTTP client
+- Laravel Boost guidelines for consumer apps
+
+### Changed
+- A `2xx` without a JSON body throws instead of returning `[]`. Cancel, restore and delete
+  calls still accept an empty body or JSON `null`. A PDF download whose body is not a PDF
+  throws too
+- The default exception message names the HTTP status: `Smartbill API error (HTTP 502)`
+- `DOCUMENTATION.md` is no longer shipped in the dist
+
+### Fixed
+- An `Http::fake()` registered after `Smartbill` was resolved is no longer bypassed. The
+  client is now built per request instead of once at resolution
+
 ## [2.2.0] - 2026-08-23
 
 Development tooling only. No runtime code changed and the supported Laravel range in
